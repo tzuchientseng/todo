@@ -1,0 +1,42 @@
+.container {
+    margin-top: 50px;
+}
+
+.container li {
+    cursor: grab;
+}
+
+.todo-container, .completed-container, .in-progress-container {
+    min-height: 300px;
+    height: auto;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.blue-background-class {
+    background-color: #f0f0f0 !important;
+}
+
+.custom-mt {
+    margin-top: 2rem; /* Custom top margin */
+}
+
+/* Styling for the CodeMirror editor in Notebook */
+#note-container .CodeMirror {
+    height: 570px;
+    font-size: 1rem;
+}
+
+#note-container .CodeMirror-scroll {
+    min-height: 520px;
+}
+
+/* Optional: Adjust padding for the editor content */
+#note-container .CodeMirror-lines {
+    padding: 10px 0;
+}
+
+/* Ensure the editor takes full width of its container */
+#note-container #editor {
+    width: 100%;
+}

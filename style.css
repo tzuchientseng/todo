@@ -1,3 +1,19 @@
+/* 隱藏頁面主要內容，但保留 SweetAlert2 彈窗 */
+.hidden-content #main-content,
+.hidden-content #main-title,
+.hidden-content .task-control,
+.hidden-content .row.mt-3 {
+    visibility: hidden;
+}
+
+/* 當 body 的 hidden-content class 被移除時，恢復頁面內容可見性 */
+body:not(.hidden-content) #main-content,
+body:not(.hidden-content) #main-title,
+body:not(.hidden-content) .task-control,
+body:not(.hidden-content) .row.mt-3 {
+    visibility: visible;
+}
+
 .container {
     margin-top: 50px;
 }
@@ -24,7 +40,7 @@
 /* Styling for the CodeMirror editor in Notebook */
 #note-container .CodeMirror {
     height: 570px;
-    font-size: 1rem;
+    font-size: 0.77rem;
 }
 
 #note-container .CodeMirror-scroll {
@@ -39,4 +55,24 @@
 /* Ensure the editor takes full width of its container */
 #note-container #editor {
     width: 100%;
+}
+
+@media (min-width: 768px) and (max-width: 1400px) { 
+    body {
+        margin-bottom: 10%;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    #main-title {
+        font-size: 2rem;
+        padding: 0px;
+        margin-top: 10px;
+    }
+
+    #main-content {
+        margin-top: 20px;
+    }
 }

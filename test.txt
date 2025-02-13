@@ -353,6 +353,8 @@ function editTask(task) {
         };
         task.dataset.taskData = JSON.stringify(newTaskData);
         task.childNodes[0].textContent = `${newTaskData.goal} ${newTaskData.purpose} [ ${newTaskData.todo} ] ${newTaskData.timing}`;
+
+        updateInProgressTasksInLocalStorage();
     }
     });
 }

@@ -477,32 +477,74 @@ function createNoteContainer() {
     // 初始化 CodeMirror
     noteEditor = CodeMirror(editorContainer, {
     lineNumbers: true,
-    theme: 'monokai',
-    mode: 'markdown',
-    keyMap: 'vim',
-    extraKeys: {
-        "Ctrl-S": function(cm) { saveTasks(); },
-        "Ctrl-N": function(cm) { cm.setOption('highlightSelectionMatches', false); },
-        "Ctrl-C": function(cm) { 
-        // Ctrl-C 複製文字
-        const selectedText = cm.getSelection();
-        if (selectedText) {
-            navigator.clipboard.writeText(selectedText)
-            .then(() => console.log('Text successfully copied to clipboard'))
-            .catch(err => console.error('Unable to copy to clipboard:', err));
-        }
-        }
-    }
+      theme: 'monokai',
+      mode: { name: "markdown", highlightFormatting: true },
+      keyMap: 'vim',
+      styleActiveLine: true,
+      foldGutter: true, // ✅ 啟用摺疊功能
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"], // ✅ 顯示摺疊按鈕
+      foldOptions: { // ✅ 設定摺疊範圍
+          rangeFinder: CodeMirror.fold.combine(
+              CodeMirror.fold.brace, 
+              CodeMirror.fold.comment, 
+              CodeMirror.fold.indent, 
+              CodeMirror.fold.markdown
+          )
+      },
+      extraKeys: {
+          "Ctrl-S": function(cm) { alert("Saving content: " + cm.getValue()); },
+          "Ctrl-Q": function(cm) { cm.foldCode(cm.getCursor()); }, // ✅ 手動摺疊當前區塊
+          "Ctrl-C": function(cm) { 
+              const selectedText = cm.getSelection();
+              if (selectedText) {
+                  navigator.clipboard.writeText(selectedText)
+                  .then(() => console.log('Text copied!'))
+                  .catch(err => console.error('Copy error:', err));
+              }
+          }
+      }
     });
 
-    // 自訂 Vim 鍵位
-    CodeMirror.Vim.map('jk', '<Esc>', 'insert');
-    CodeMirror.Vim.map('t', 'ggvG$', 'normal');  // nnoremap t ggvG$
-    CodeMirror.Vim.map('L', '$', 'normal');      // nnoremap L $
-    CodeMirror.Vim.map('H', '0', 'normal');      // nnoremap H 0
+    // ✅ 讓 Vim `zc` / `zo` 可用
+    CodeMirror.Vim.defineAction("foldCurrent", function(cm) {
+        cm.foldCode(cm.getCursor());
+    });
+    CodeMirror.Vim.defineAction("unfoldCurrent", function(cm) {
+        cm.foldCode(cm.getCursor(), null, "unfold");
+    });
 
-    // 預設進入 insert 模式
-    CodeMirror.Vim.handleKey(noteEditor, 'i');
+    // ✅ 讓 Vim `zM` / `zR` 可用
+    CodeMirror.Vim.defineAction("foldAll", function(cm) {
+        cm.operation(function() {
+            for (let i = 0; i < cm.lineCount(); i++) {
+                cm.foldCode(CodeMirror.Pos(i, 0));
+            }
+        });
+    });
+    CodeMirror.Vim.defineAction("unfoldAll", function(cm) {
+        cm.operation(function() {
+            for (let i = 0; i < cm.lineCount(); i++) {
+                cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
+            }
+        });
+    });
+
+    // ✅ 綁定 Vim 快捷鍵
+    CodeMirror.Vim.mapCommand("zc", "action", "foldCurrent", {});
+    CodeMirror.Vim.mapCommand("zo", "action", "unfoldCurrent", {});
+    CodeMirror.Vim.mapCommand("zM", "action", "foldAll", {});
+    CodeMirror.Vim.mapCommand("zR", "action", "unfoldAll", {});
+
+    // ✅ 設定 Vim 其他快捷鍵
+    CodeMirror.Vim.map('jk', '<Esc>', 'insert');  // 按 jk 退出 insert 模式
+    CodeMirror.Vim.map('t', 'ggvG$', 'normal');   // 選取全部內容
+    CodeMirror.Vim.map('L', '$', 'normal');       // L 到行尾
+    CodeMirror.Vim.map('H', '0', 'normal');       // H 到行首
+
+    // ✅ 預設進入 insert 模式
+    setTimeout(() => {
+        CodeMirror.Vim.handleKey(editor, 'i');
+    }, 500); // 延遲執行，確保 CodeMirror 初始化完畢
 }
 
 // 更新 Notebook 內容

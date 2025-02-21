@@ -275,14 +275,18 @@ function saveTasks() {
     saveTasksToAPI(data)
     .then(res => {
         if (res.success) {
-        showSuccessMessage('Save Successful', 'Your tasks and notes have been successfully saved');
+            Swal.fire({
+                icon: 'success',
+                title: 'Saved!',
+                showConfirmButton: false,
+                timer: 1000
+            });
         } else {
-        showErrorMessage('Save Failed', 'Unable to save tasks and notes: ' + res.message);
+            showErrorMessage('Save Failed', 'Unable to save tasks and notes: ' + res.message);
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        showErrorMessage('Error', 'An error occurred while saving tasks and notes');
+    .catch(e => {
+        showErrorMessage('Error', 'An unexpected error occurred');
     });
 }
 
@@ -492,7 +496,7 @@ function createNoteContainer() {
           )
       },
       extraKeys: {
-          "Ctrl-S": function(cm) { alert("Saving content: " + cm.getValue()); },
+          // "Ctrl-S": function(cm) { alert("Saving content: " + cm.getValue()); },
           "Ctrl-Q": function(cm) { cm.foldCode(cm.getCursor()); }, // ✅ 手動摺疊當前區塊
           "Ctrl-C": function(cm) { 
               const selectedText = cm.getSelection();

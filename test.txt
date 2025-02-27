@@ -547,7 +547,7 @@ function createNoteContainer() {
 
     // ✅ 預設進入 insert 模式
     setTimeout(() => {
-        CodeMirror.Vim.handleKey(editor, 'i');
+        CodeMirror.Vim.handleKey(noteEditor, 'i');
     }, 500); // 延遲執行，確保 CodeMirror 初始化完畢
 }
 

@@ -259,35 +259,34 @@ function updateInProgressTasksInLocalStorage() {
 // 觸發儲存 (呼叫 saveTasksToAPI)
 function saveTasks() {
     const todoTasks = Array.from(document.getElementById('todo-list').children)
-    .map(li => JSON.parse(li.dataset.taskData));
+        .map(li => JSON.parse(li.dataset.taskData));
     const inProgressTasks = Array.from(document.getElementById('in-progress-list').children)
-    .map(li => JSON.parse(li.dataset.taskData));
+        .map(li => JSON.parse(li.dataset.taskData));
 
-    // 先把 In Progress 寫進 localStorage
     localStorage.setItem('inProgressTasks', JSON.stringify(inProgressTasks));
 
     const noteText = noteEditor ? noteEditor.getValue() : '';
     const data = {
-    note_data: noteText,
-    todo_data: todoTasks
+        note_data: noteText,
+        todo_data: todoTasks
     };
 
+    const saveButton = document.getElementById('save-tasks');
+    const originalHTML = saveButton.innerHTML;
+    saveButton.innerHTML = '<span class="spinner"></span>';
+
     saveTasksToAPI(data)
-    .then(res => {
-        if (res.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Saved!',
-                showConfirmButton: false,
-                timer: 1000
-            });
-        } else {
-            showErrorMessage('Save Failed', 'Unable to save tasks and notes: ' + res.message);
-        }
-    })
-    .catch(e => {
-        showErrorMessage('Error', 'An unexpected error occurred');
-    });
+        .then(res => {
+            if (!res.success) {
+                showErrorMessage('Save Failed', 'Unable to save tasks and notes: ' + res.message);
+            }
+        })
+        .catch(e => {
+            showErrorMessage('Error', 'An unexpected error occurred');
+        })
+        .finally(() => {
+            saveButton.innerHTML = originalHTML;
+        });
 }
 
 // 新增一筆任務（彈出 SweetAlert2 輸入）
@@ -592,3 +591,4 @@ function showErrorMessage(title, text) {
     confirmButtonColor: '#ff9800'
     });
 }
+

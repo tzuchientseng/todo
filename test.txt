@@ -454,100 +454,122 @@ function toggleNote() {
 
 // 動態建立筆記區塊並初始化 CodeMirror
 function createNoteContainer() {
+    // 建立筆記主容器
     noteContainer = document.createElement('div');
     noteContainer.id = 'note-container';
-    noteContainer.className = 'container mt-3';
+    noteContainer.style.position = 'fixed';
+    noteContainer.style.top = '0';
+    noteContainer.style.left = '0';
+    noteContainer.style.width = '100vw';
+    noteContainer.style.height = '100vh';
+    noteContainer.style.zIndex = '9999';
+    noteContainer.style.backgroundColor = '#1e1e1e'; // 暗色背景
+    noteContainer.style.display = 'flex';
+    noteContainer.style.flexDirection = 'column';
 
-    const noteCard = document.createElement('div');
-    noteCard.className = 'card flex-grow-1';
+    // 上方標題欄（可省略）
+    const header = document.createElement('div');
+    header.style.color = '#fff';
+    header.style.padding = '10px';
+    header.style.fontSize = '1.2rem';
+    header.textContent = 'Notebook';
+    noteContainer.appendChild(header);
 
-    const noteHeader = document.createElement('div');
-    noteHeader.className = 'card-header bg-secondary text-white';
-    noteHeader.textContent = 'Notebook';
-
-    const noteBody = document.createElement('div');
-    noteBody.className = 'card-body';
-
+    // 編輯器容器
     const editorContainer = document.createElement('div');
     editorContainer.id = 'editor';
-    noteBody.appendChild(editorContainer);
+    editorContainer.style.flex = '1';
+    editorContainer.style.overflow = 'auto';
+    noteContainer.appendChild(editorContainer);
 
-    noteCard.appendChild(noteHeader);
-    noteCard.appendChild(noteBody);
-    noteContainer.appendChild(noteCard);
-    mainContent.appendChild(noteContainer);
+    // 不要覆蓋底部控制列
+    document.body.insertBefore(noteContainer, document.querySelector('.row.mt-3'));
+
+    // 判斷是否為小螢幕（小於 768px 就算手機）
+    const isSmallScreen = window.innerWidth < 768;
 
     // 初始化 CodeMirror
     noteEditor = CodeMirror(editorContainer, {
-    lineNumbers: true,
-      theme: 'monokai',
-      mode: { name: "markdown", highlightFormatting: true },
-      keyMap: 'vim',
-      styleActiveLine: true,
-      foldGutter: true, // ✅ 啟用摺疊功能
-      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"], // ✅ 顯示摺疊按鈕
-      foldOptions: { // ✅ 設定摺疊範圍
-          rangeFinder: CodeMirror.fold.combine(
-              CodeMirror.fold.brace, 
-              CodeMirror.fold.comment, 
-              CodeMirror.fold.indent, 
-              CodeMirror.fold.markdown
-          )
-      },
-      extraKeys: {
-          // "Ctrl-S": function(cm) { alert("Saving content: " + cm.getValue()); },
-          "Ctrl-Q": function(cm) { cm.foldCode(cm.getCursor()); }, // ✅ 手動摺疊當前區塊
-          "Ctrl-C": function(cm) { 
-              const selectedText = cm.getSelection();
-              if (selectedText) {
-                  navigator.clipboard.writeText(selectedText)
-                  .then(() => console.log('Text copied!'))
-                  .catch(err => console.error('Copy error:', err));
-              }
-          }
-      }
-    });
-
-    // ✅ 讓 Vim `zc` / `zo` 可用
-    CodeMirror.Vim.defineAction("foldCurrent", function(cm) {
-        cm.foldCode(cm.getCursor());
-    });
-    CodeMirror.Vim.defineAction("unfoldCurrent", function(cm) {
-        cm.foldCode(cm.getCursor(), null, "unfold");
-    });
-
-    // ✅ 讓 Vim `zM` / `zR` 可用
-    CodeMirror.Vim.defineAction("foldAll", function(cm) {
-        cm.operation(function() {
-            for (let i = 0; i < cm.lineCount(); i++) {
-                cm.foldCode(CodeMirror.Pos(i, 0));
+        lineNumbers: !isSmallScreen,  // 小螢幕不顯示行號
+        theme: 'monokai',
+        mode: { name: "markdown", highlightFormatting: true },
+        keyMap: 'vim',
+        styleActiveLine: true,
+        foldGutter: true,
+        gutters: isSmallScreen ? [] : ["CodeMirror-linenumbers", "CodeMirror-foldgutter"], // 小螢幕不顯示 gutter
+        foldOptions: {
+            rangeFinder: CodeMirror.fold.combine(
+                CodeMirror.fold.brace,
+                CodeMirror.fold.comment,
+                CodeMirror.fold.indent,
+                CodeMirror.fold.markdown
+            )
+        },
+        extraKeys: {
+            "Ctrl-Q": function(cm) { cm.foldCode(cm.getCursor()); },
+            "Ctrl-C": function(cm) {
+                const selectedText = cm.getSelection();
+                if (selectedText) {
+                    navigator.clipboard.writeText(selectedText)
+                        .then(() => console.log('Text copied!'))
+                        .catch(err => console.error('Copy error:', err));
+                }
             }
+        }
+    });
+
+    enableRelativeLineNumbers(noteEditor);
+
+    // Vim 摺疊命令
+    CodeMirror.Vim.defineAction("foldCurrent", cm => cm.foldCode(cm.getCursor()));
+    CodeMirror.Vim.defineAction("unfoldCurrent", cm => cm.foldCode(cm.getCursor(), null, "unfold"));
+    CodeMirror.Vim.defineAction("foldAll", cm => {
+        cm.operation(() => {
+            for (let i = 0; i < cm.lineCount(); i++) cm.foldCode(CodeMirror.Pos(i, 0));
         });
     });
-    CodeMirror.Vim.defineAction("unfoldAll", function(cm) {
-        cm.operation(function() {
-            for (let i = 0; i < cm.lineCount(); i++) {
-                cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
-            }
+    CodeMirror.Vim.defineAction("unfoldAll", cm => {
+        cm.operation(() => {
+            for (let i = 0; i < cm.lineCount(); i++) cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
         });
     });
 
-    // ✅ 綁定 Vim 快捷鍵
     CodeMirror.Vim.mapCommand("zc", "action", "foldCurrent", {});
     CodeMirror.Vim.mapCommand("zo", "action", "unfoldCurrent", {});
     CodeMirror.Vim.mapCommand("zM", "action", "foldAll", {});
     CodeMirror.Vim.mapCommand("zR", "action", "unfoldAll", {});
+    CodeMirror.Vim.map('jk', '<Esc>', 'insert');
+    CodeMirror.Vim.map('t', 'ggvG$', 'normal');
+    CodeMirror.Vim.map('L', '$', 'normal');
+    CodeMirror.Vim.map('H', '0', 'normal');
 
-    // ✅ 設定 Vim 其他快捷鍵
-    CodeMirror.Vim.map('jk', '<Esc>', 'insert');  // 按 jk 退出 insert 模式
-    CodeMirror.Vim.map('t', 'ggvG$', 'normal');   // 選取全部內容
-    CodeMirror.Vim.map('L', '$', 'normal');       // L 到行尾
-    CodeMirror.Vim.map('H', '0', 'normal');       // H 到行首
-
-    // ✅ 預設進入 insert 模式
+    // 自動進入 insert 模式
     setTimeout(() => {
         CodeMirror.Vim.handleKey(noteEditor, 'i');
-    }, 500); // 延遲執行，確保 CodeMirror 初始化完畢
+    }, 300);
+}
+
+function enableRelativeLineNumbers(cm) {
+    const updateFormatter = () => {
+        const current = cm.getCursor().line + 1;
+        cm.setOption("lineNumberFormatter", (line) => {
+            return (line === current) ? "0" : Math.abs(line - current);
+        });
+    };
+
+    updateFormatter(); // 初次設定
+    cm.on("cursorActivity", updateFormatter); // 游標移動時更新
+    // cm.setOption("lineNumberFormatter", (line) => {
+    //     const current = cm.getCursor().line + 1;
+    //     return (line === current) ? "0" : (line - current);
+    // });
+
+    // cm.on("cursorActivity", () => {
+    //     cm.setOption("lineNumberFormatter", (line) => {
+    //         const current = cm.getCursor().line + 1;
+    //         return (line === current) ? "0" : (line - current);
+    //     });
+    // });
 }
 
 // 更新 Notebook 內容
@@ -591,4 +613,3 @@ function showErrorMessage(title, text) {
     confirmButtonColor: '#ff9800'
     });
 }
-

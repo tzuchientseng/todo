@@ -1,4 +1,4 @@
-/* 隱藏頁面主要內容，但保留 SweetAlert2 彈窗 */
+/* 隱藏主要內容，但保留 SweetAlert2 彈窗 */
 .hidden-content #main-content,
 .hidden-content #main-title,
 .hidden-content .task-control,
@@ -6,7 +6,6 @@
     visibility: hidden;
 }
 
-/* 當 body 的 hidden-content class 被移除時，恢復頁面內容可見性 */
 body:not(.hidden-content) #main-content,
 body:not(.hidden-content) #main-title,
 body:not(.hidden-content) .task-control,
@@ -14,80 +13,153 @@ body:not(.hidden-content) .row.mt-3 {
     visibility: visible;
 }
 
-.container {
-    margin-top: 50px;
-}
-
+/* 📋 列表樣式 */
 .container li {
     cursor: grab;
 }
 
-.todo-container, .completed-container, .in-progress-container {
+.todo-container, .in-progress-container {
     min-height: 300px;
-    height: auto;
-    max-height: 520px;
+    max-height: 640px;
     overflow-y: auto;
 }
 
+/* 拖曳時的背景 */
 .blue-background-class {
     background-color: #f0f0f0 !important;
 }
 
 .custom-mt {
-    margin-top: 2rem; /* Custom top margin */
+    margin-top: 2rem;
 }
 
-/* Styling for the CodeMirror editor in Notebook */
-#note-container .CodeMirror {
-    height: 570px;
-    font-size: 0.77rem;
-}
-
-#note-container .CodeMirror-scroll {
-    min-height: 520px;
-}
-
-/* Optional: Adjust padding for the editor content */
-#note-container .CodeMirror-lines {
-    padding: 10px 0;
-}
-
-/* Ensure the editor takes full width of its container */
-#note-container #editor {
-    width: 100%;
-}
-
-@media (min-width: 768px) and (max-width: 1400px) { 
-    body {
-        margin-bottom: 10%;
-    }
-
-    .container {
-        max-width: 100%;
-    }
-
-    #main-title {
-        font-size: 2rem;
-        padding: 0px;
-        margin-top: 10px;
-    }
-
-    #main-content {
-        margin-top: 20px;
-    }
-}
-
+/* Spinner loading 動畫 */
 .spinner {
-  display: inline-block;
-  width: 17px;
-  height: 17px;
-  border: 2px solid white;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 📓 Notebook 極簡全螢幕模式 */
+#note-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9998;
+    background-color: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+/* CodeMirror 全填滿空間 */
+#note-container #editor {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+#note-container .CodeMirror {
+    height: 100% !important;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* 📌 底部按鈕區固定（Save & Notebook） */
+.row.mt-3 {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px 15px;
+    background-color: #1e1e1e;
+    z-index: 9999;
+}
+
+/* ✅ 響應式字體大小調整（手機、平板、桌機） */
+
+/* 📱 小於 768px (手機) */
+@media (max-width: 767.98px) {
+    #main-title {
+        font-size: 1.5rem;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    #note-container .CodeMirror {
+        font-size: 1rem;
+    }
+
+    .list-group-item {
+        font-size: 0.95rem;
+    }
+
+    .btn {
+        font-size: 1rem;
+    }
+
+    .card-header {
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .row.mt-3 button {
+        width: 45% !important;
+        margin: 0 5px;
+    }
+}
+
+/* 💻 768px ~ 1399px (平板與一般桌機) */
+@media (min-width: 768px) and (max-width: 1399.98px) {
+    #main-title {
+        font-size: 2rem;
+        padding: 0;
+        margin-top: 10px;
+    }
+
+    #note-container .CodeMirror {
+        font-size: 0.95rem;
+    }
+
+    .list-group-item {
+        font-size: 1rem;
+    }
+
+    .btn {
+        font-size: 0.95rem;
+    }
+}
+
+/* 🖥️ 1400px 以上 (大螢幕) */
+@media (min-width: 1400px) {
+    #main-title {
+        font-size: 2.5rem;
+        margin-top: 1.5rem;
+    }
+
+    #note-container .CodeMirror {
+        font-size: 1rem;
+    }
+
+    .list-group-item {
+        font-size: 1.05rem;
+    }
+
+    .btn {
+        font-size: 1rem;
+    }
 }

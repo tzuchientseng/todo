@@ -409,35 +409,39 @@ function clearInProgress() {
 
 // Initialize drag-and-drop sorting
 function initializeSortable() {
-    new Sortable(document.getElementById('todo-list'), {
-        group: 'shared',
-        animation: 150,
-        ghostClass: 'blue-background-class',
-        onEnd: function (evt) {
-            if (evt.to.id === 'in-progress-list') {
-                const button = evt.item.querySelector('button');
-                button.className = 'btn btn-sm btn-outline-danger';
-                button.textContent = 'Complete';
-                button.onclick = () => removeFromInProgress(evt.item);
+    if (window.matchMedia("(min-width: 768px)").matches) {
+        new Sortable(document.getElementById('todo-list'), {
+            group: 'shared',
+            animation: 150,
+            ghostClass: 'blue-background-class',
+            onEnd: function (evt) {
+                if (evt.to.id === 'in-progress-list') {
+                    const button = evt.item.querySelector('button');
+                    button.className = 'btn btn-sm btn-outline-danger';
+                    button.textContent = 'Complete';
+                    button.onclick = () => removeFromInProgress(evt.item);
+                }
+                debouncedSaveTasks(); // Debounced save
             }
-          debouncedSaveTasks(); // Debounced save
-        }
-    });
+        });
 
-    new Sortable(document.getElementById('in-progress-list'), {
-        group: 'shared',
-        animation: 150,
-        ghostClass: 'blue-background-class',
-        onEnd: function (evt) {
-            if (evt.to.id === 'todo-list') {
-                const button = evt.item.querySelector('button');
-                button.className = 'btn btn-sm btn-outline-success';
-                button.textContent = 'In Progress';
-                button.onclick = () => moveToInProgress(evt.item);
+        new Sortable(document.getElementById('in-progress-list'), {
+            group: 'shared',
+            animation: 150,
+            ghostClass: 'blue-background-class',
+            onEnd: function (evt) {
+                if (evt.to.id === 'todo-list') {
+                    const button = evt.item.querySelector('button');
+                    button.className = 'btn btn-sm btn-outline-success';
+                    button.textContent = 'In Progress';
+                    button.onclick = () => moveToInProgress(evt.item);
+                }
+                debouncedSaveTasks(); // Debounced save
             }
-            debouncedSaveTasks(); // Debounced save
-        }
-    });
+        });
+    } else {
+        console.log('Sortable disabled on small screens.');
+    }
 }
 
 // Trigger add task pop-up on Enter key in list view
@@ -490,11 +494,9 @@ function createNoteContainer() {
     noteContainer.className = 'container-fluid p-0';
     mainContent.appendChild(noteContainer);
 
-    // ⭐ 新增標題 Header
+    // 新增標題 Header
     const header = document.createElement('h6');
     header.className = 'text-center text-white mt-2';
-
-    // 使用 SVG 圖示搭配標題
     header.innerHTML = `
       <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Vimlogo.svg" 
            alt="Vim Logo" 
@@ -503,6 +505,9 @@ function createNoteContainer() {
     `;
     noteContainer.appendChild(header);
 
+    // 判斷螢幕寬度是否顯示行號
+    const showLineNumbers = window.matchMedia("(min-width: 768px)").matches;
+
     // 建立 CodeMirror 編輯器容器
     const editorContainer = document.createElement('div');
     editorContainer.id = 'editor';
@@ -510,16 +515,18 @@ function createNoteContainer() {
 
     // 初始化 CodeMirror
     noteEditor = CodeMirror(editorContainer, {
-        lineNumbers: true,
+        lineNumbers: showLineNumbers,
         theme: 'monokai',
         mode: { name: "markdown", highlightFormatting: true },
         keyMap: 'vim',
         styleActiveLine: true,
         foldGutter: true,
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        gutters: showLineNumbers
+            ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            : ["CodeMirror-foldgutter"],
         lineNumberFormatter: function(line) {
             if (!noteEditor) return line;
-            const cursorLine = noteEditor.getCursor().line + 1; // CodeMirror line starts at 0
+            const cursorLine = noteEditor.getCursor().line + 1;
             return line === cursorLine ? String(line) : String(Math.abs(cursorLine - line));
         },
         extraKeys: {
@@ -538,32 +545,24 @@ function createNoteContainer() {
     noteEditor.on('cursorActivity', () => {
         const cursor = noteEditor.getCursor();
         noteEditor.scrollIntoView({ line: cursor.line, ch: cursor.ch }, 0);
-
-        // ✅ 延遲刷新，避免跟 scrollIntoView 衝突
         setTimeout(() => {
             noteEditor.refresh();
         }, 10);
     });
 
     // Vim 特定快捷鍵
-    CodeMirror.Vim.defineAction("foldCurrent", function(cm) {
-        cm.foldCode(cm.getCursor());
-    });
-    CodeMirror.Vim.defineAction("unfoldCurrent", function(cm) {
-        cm.foldCode(cm.getCursor(), null, "unfold");
-    });
-    CodeMirror.Vim.defineAction("foldAll", function(cm) {
-        cm.operation(function() {
-            for (let i = 0; i < cm.lineCount(); i++) {
+    CodeMirror.Vim.defineAction("foldCurrent", cm => cm.foldCode(cm.getCursor()));
+    CodeMirror.Vim.defineAction("unfoldCurrent", cm => cm.foldCode(cm.getCursor(), null, "unfold"));
+    CodeMirror.Vim.defineAction("foldAll", cm => {
+        cm.operation(() => {
+            for (let i = 0; i < cm.lineCount(); i++)
                 cm.foldCode(CodeMirror.Pos(i, 0));
-            }
         });
     });
-    CodeMirror.Vim.defineAction("unfoldAll", function(cm) {
-        cm.operation(function() {
-            for (let i = 0; i < cm.lineCount(); i++) {
+    CodeMirror.Vim.defineAction("unfoldAll", cm => {
+        cm.operation(() => {
+            for (let i = 0; i < cm.lineCount(); i++)
                 cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
-            }
         });
     });
 
@@ -576,9 +575,7 @@ function createNoteContainer() {
     CodeMirror.Vim.map("L", "$", "normal");
     CodeMirror.Vim.map("H", "0", "normal");
 
-    setTimeout(() => {
-        CodeMirror.Vim.handleKey(noteEditor, 'i');
-    }, 500);
+    setTimeout(() => CodeMirror.Vim.handleKey(noteEditor, 'i'), 500);
 }
 
 

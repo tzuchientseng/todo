@@ -536,7 +536,13 @@ function createNoteContainer() {
     });
 
     noteEditor.on('cursorActivity', () => {
-        noteEditor.refresh();
+        const cursor = noteEditor.getCursor();
+        noteEditor.scrollIntoView({ line: cursor.line, ch: cursor.ch }, 0);
+
+        // ✅ 延遲刷新，避免跟 scrollIntoView 衝突
+        setTimeout(() => {
+            noteEditor.refresh();
+        }, 10);
     });
 
     // Vim 特定快捷鍵
@@ -618,4 +624,3 @@ function showErrorMessage(title, text) {
         confirmButtonColor: '#ff9800'
     });
 }
-

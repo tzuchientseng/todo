@@ -1,623 +1,725 @@
 /********************************************/
 /* 1) Hard-coded Login + Backend API Functions for Fetching/Saving Tasks */
 /********************************************/
-const API_BASE_URL = "https://home.sunnytseng.com/api";
+const API_BASE_URL = "https://sunnytseng.com/api";
 let TOKEN = null;
 
 // Debounce function to reduce frequent API requests
 function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
     };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+function disableEnterListener() {
+  document.removeEventListener("keydown", enterKeyListener);
+}
+
+function enableEnterListener() {
+  document.addEventListener("keydown", enterKeyListener);
 }
 
 // Login and obtain Token
 async function login_and_get_token() {
-    const loginData = { username: "sunny", password: "open" };
-    try {
-        let response = await fetch(`${API_BASE_URL}/login/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(loginData),
-        });
-        if (!response.ok) {
-            let text = await response.text();
-            console.error("Login request failed:", response.status, text);
-            throw new Error(`Login failed: ${response.status} ${text}`);
-        }
-        let data = await response.json();
-        TOKEN = data.access;
-        if (TOKEN) {
-            console.log("Login successful, Access Token obtained.");
-        } else {
-            console.error("Login failed, unable to obtain Access Token.");
-            throw new Error("Access Token not received");
-        }
-    } catch (error) {
-        console.error("Login error:", error);
-        throw error;
+  const loginData = { username: "sunny", password: "open" };
+  try {
+    let response = await fetch(`${API_BASE_URL}/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(loginData),
+    });
+    if (!response.ok) {
+      let text = await response.text();
+      console.error("Login request failed:", response.status, text);
+      throw new Error(`Login failed: ${response.status} ${text}`);
     }
+    let data = await response.json();
+    TOKEN = data.access;
+    if (TOKEN) {
+      console.log("Login successful, Access Token obtained.");
+    } else {
+      console.error("Login failed, unable to obtain Access Token.");
+      throw new Error("Access Token not received");
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
+  }
 }
 
 // Fetch task data from backend
 async function fetchTasksFromAPI() {
-    if (!TOKEN) await login_and_get_token();
-    try {
-        let response = await fetch(`${API_BASE_URL}/get-toDoNotes/`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${TOKEN}` },
-        });
-        // If Token is invalid, attempt to re-login
-        if (response.status === 401) {
-            console.log("Authentication failed, attempting to re-login.");
-            await login_and_get_token();
-            response = await fetch(`${API_BASE_URL}/get-toDoNotes/`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${TOKEN}` },
-            });
-        }
-        if (!response.ok) {
-            let text = await response.text();
-            console.error("API request failed:", response.status, text);
-            throw new Error(`Network response error: ${response.status} ${text}`);
-        }
-        let data = await response.json();
-        // console.log("Raw API response:", JSON.stringify(data, null, 2)); // Debug: Log response
-        // Validate response structure
-        if (data && typeof data === 'object' &&
-            data.note_data !== undefined &&
-            data.todo_data !== undefined &&
-            data.in_progress_data !== undefined) {
-            return data; // Return { note_data, todo_data, in_progress_data }
-        } else {
-            throw new Error("Invalid response structure: Missing required fields (note_data, todo_data, in_progress_data)");
-        }
-    } catch (error) {
-        console.error("Error fetching tasks:", error);
-        throw error;
+  if (!TOKEN) await login_and_get_token();
+  try {
+    let response = await fetch(`${API_BASE_URL}/get-toDoNotes/`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
+    // If Token is invalid, attempt to re-login
+    if (response.status === 401) {
+      console.log("Authentication failed, attempting to re-login.");
+      await login_and_get_token();
+      response = await fetch(`${API_BASE_URL}/get-toDoNotes/`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${TOKEN}` },
+      });
     }
+    if (!response.ok) {
+      let text = await response.text();
+      console.error("API request failed:", response.status, text);
+      throw new Error(`Network response error: ${response.status} ${text}`);
+    }
+    let data = await response.json();
+    // console.log("Raw API response:", JSON.stringify(data, null, 2)); // Debug: Log response
+    // Validate response structure
+    if (
+      data &&
+      typeof data === "object" &&
+      data.note_data !== undefined &&
+      data.todo_data !== undefined &&
+      data.in_progress_data !== undefined
+    ) {
+      return data; // Return { note_data, todo_data, in_progress_data }
+    } else {
+      throw new Error(
+        "Invalid response structure: Missing required fields (note_data, todo_data, in_progress_data)",
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw error;
+  }
 }
 
 // Save frontend task/note data to backend
 async function saveTasksToAPI(data) {
-    if (!TOKEN) await login_and_get_token();
-    try {
-        let response = await fetch(`${API_BASE_URL}/save-toDoNotes/`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${TOKEN}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
-        // If Token is invalid, attempt to re-login
-        if (response.status === 401) {
-            console.log("Authentication failed, attempting to re-login.");
-            await login_and_get_token();
-            response = await fetch(`${API_BASE_URL}/save-toDoNotes/`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${TOKEN}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-        }
-        if (!response.ok) {
-            let text = await response.text();
-            console.error("Save API request failed:", response.status, text);
-            throw new Error(`Network response error: ${response.status} ${text}`);
-        }
-        let resJson = await response.json();
-        // console.log("Save API response:", resJson); // Debug
-        return resJson;
-    } catch (error) {
-        console.error("Error saving tasks:", error);
-        throw error;
+  if (!TOKEN) await login_and_get_token();
+  try {
+    let response = await fetch(`${API_BASE_URL}/save-toDoNotes/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    // If Token is invalid, attempt to re-login
+    if (response.status === 401) {
+      console.log("Authentication failed, attempting to re-login.");
+      await login_and_get_token();
+      response = await fetch(`${API_BASE_URL}/save-toDoNotes/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
     }
+    if (!response.ok) {
+      let text = await response.text();
+      console.error("Save API request failed:", response.status, text);
+      throw new Error(`Network response error: ${response.status} ${text}`);
+    }
+    let resJson = await response.json();
+    // console.log("Save API response:", resJson); // Debug
+    return resJson;
+  } catch (error) {
+    console.error("Error saving tasks:", error);
+    throw error;
+  }
 }
 
 /********************************************/
 /* 2) Frontend Interface and Event Logic (Integrated with API) */
 /********************************************/
 // DOM Elements
-const todoContainer = document.getElementById('todo-container');
-const mainTitle = document.getElementById('main-title');
-const mainContent = document.getElementById('main-content');
-const noteButton = document.getElementById('note');
-const saveButton = document.getElementById('save-tasks');
-const addTaskButton = document.getElementById('add-task');
-const clearInProgressButton = document.getElementById('clear-in-progress');
+const todoContainer = document.getElementById("todo-container");
+const mainTitle = document.getElementById("main-title");
+const mainContent = document.getElementById("main-content");
+const noteButton = document.getElementById("note");
+const saveButton = document.getElementById("save-tasks");
+const addTaskButton = document.getElementById("add-task");
+const clearInProgressButton = document.getElementById("clear-in-progress");
 let noteContainer = null;
 let noteEditor = null;
 
 // Debounced saveTasks
 const debouncedSaveTasks = debounce(saveTasks, 500);
 
-document.addEventListener('DOMContentLoaded', function() {
-    Swal.fire({
-        title: 'Login',
-        input: 'password',
-        inputPlaceholder: 'Please enter password',
-        showCancelButton: false,
-        confirmButtonText: 'Confirm',
-        confirmButtonColor: '#ff9800',
-        allowOutsideClick: false,
-        preConfirm: (password) => {
-            if (password !== 'open') {
-                Swal.showValidationMessage('Incorrect password, please try again!');
-            }
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.body.classList.remove('hidden-content');
-            initializePage();
-        }
-    });
-    // Set focus on "Add Task" button
-    addTaskButton.focus();
+document.addEventListener("DOMContentLoaded", function() {
+  Swal.fire({
+    title: "Login",
+    input: "password",
+    inputPlaceholder: "Please enter password",
+    showCancelButton: false,
+    confirmButtonText: "Confirm",
+    confirmButtonColor: "#ff9800",
+    allowOutsideClick: false,
+    preConfirm: (password) => {
+      if (password !== "open") {
+        Swal.showValidationMessage("Incorrect password, please try again!");
+      }
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.body.classList.remove("hidden-content");
+      initializePage();
+    }
+  });
+  // Set focus on "Add Task" button
+  addTaskButton.focus();
 
-    // Add Enter key listener
-    document.addEventListener('keydown', enterKeyListener);
+  // Add Enter key listener
+  document.addEventListener("keydown", enterKeyListener);
 
-    // Add Tab key listener
-    document.addEventListener('keydown', tabKeyListener);
+  // Add Tab key listener
+  document.addEventListener("keydown", tabKeyListener);
 
-    // Add Ctrl+S shortcut
-    document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.key === 's') {
-            event.preventDefault(); // Prevent browser save dialog
-            saveTasks();
-        }
-    });
+  // Add Ctrl+S shortcut
+  document.addEventListener("keydown", function(event) {
+    if (event.ctrlKey && event.key === "s") {
+      event.preventDefault(); // Prevent browser save dialog
+      saveTasks();
+    }
+  });
 
-    initializePage();
+  initializePage();
 });
 
 function initializePage() {
-    // Event listeners
-    saveButton.addEventListener('click', saveTasks);
-    addTaskButton.addEventListener('click', addTask);
-    clearInProgressButton.addEventListener('click', clearInProgress);
-    noteButton.addEventListener('click', toggleNote);
+  // Event listeners
+  saveButton.addEventListener("click", saveTasks);
+  addTaskButton.addEventListener("click", addTask);
+  clearInProgressButton.addEventListener("click", clearInProgress);
+  noteButton.addEventListener("click", toggleNote);
 
-    // Load tasks initially
-    fetchTasks();
-    // Initialize drag-and-drop sorting
-    initializeSortable();
+  // Load tasks initially
+  fetchTasks();
+  // Initialize drag-and-drop sorting
+  initializeSortable();
 }
 
 function showTodoView() {
-    todoContainer.style.display = 'block';
-    mainTitle.textContent = 'To-Do List';
-    if (noteContainer) noteContainer.style.display = 'none';
-    noteButton.textContent = 'Notebook';
+  todoContainer.style.display = "block";
+  mainTitle.textContent = "To-Do List";
+  if (noteContainer) noteContainer.style.display = "none";
+  noteButton.textContent = "Notebook";
 }
 
 // Fetch tasks
 function fetchTasks() {
-    fetchTasksFromAPI()
-        .then(data => {
-            // console.log("Processed data:", JSON.stringify(data, null, 2)); // Debug
-            // Validate data structure
-            if (data && typeof data === 'object' &&
-                data.note_data !== undefined && 
-                data.todo_data !== undefined && 
-                data.in_progress_data !== undefined) {
-                renderTasks(data.todo_data, 'todo-list');
-                renderTasks(data.in_progress_data, 'in-progress-list');
-                updateNoteContent(data.note_data);
-            } else {
-                console.error("Invalid data structure:", data);
-                showErrorMessage('Error', 'Received invalid data structure from server');
-                // Use fallback data to prevent app crash
-                renderTasks([], 'todo-list');
-                renderTasks([], 'in-progress-list');
-                updateNoteContent('');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching tasks:', error);
-            showErrorMessage('Error', 'Unable to fetch tasks and notes: ' + error.message);
-            // Use fallback data
-            renderTasks([], 'todo-list');
-            renderTasks([], 'in-progress-list');
-            updateNoteContent('');
-        });
+  fetchTasksFromAPI()
+    .then((data) => {
+      // console.log("Processed data:", JSON.stringify(data, null, 2)); // Debug
+      // Validate data structure
+      if (
+        data &&
+        typeof data === "object" &&
+        data.note_data !== undefined &&
+        data.todo_data !== undefined &&
+        data.in_progress_data !== undefined
+      ) {
+        renderTasks(data.todo_data, "todo-list");
+        renderTasks(data.in_progress_data, "in-progress-list");
+        updateNoteContent(data.note_data);
+      } else {
+        console.error("Invalid data structure:", data);
+        showErrorMessage(
+          "Error",
+          "Received invalid data structure from server",
+        );
+        // Use fallback data to prevent app crash
+        renderTasks([], "todo-list");
+        renderTasks([], "in-progress-list");
+        updateNoteContent("");
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching tasks:", error);
+      showErrorMessage(
+        "Error",
+        "Unable to fetch tasks and notes: " + error.message,
+      );
+      // Use fallback data
+      renderTasks([], "todo-list");
+      renderTasks([], "in-progress-list");
+      updateNoteContent("");
+    });
 }
 
 // Render tasks to specified UL
 function renderTasks(tasks, listId) {
-    const listElement = document.getElementById(listId);
-    if (!listElement) {
-        console.error(`Element with ID '${listId}' not found`);
-        return;
+  const listElement = document.getElementById(listId);
+  if (!listElement) {
+    console.error(`Element with ID '${listId}' not found`);
+    return;
+  }
+  listElement.innerHTML = "";
+  tasks.forEach((taskData) => {
+    // Validate task data structure
+    if (
+      taskData.goal !== undefined &&
+      taskData.purpose !== undefined &&
+      taskData.todo !== undefined &&
+      taskData.timing !== undefined
+    ) {
+      const newTask = createTaskElement(
+        taskData,
+        listId === "in-progress-list",
+      );
+      listElement.appendChild(newTask);
+    } else {
+      console.warn("Invalid task data:", taskData);
     }
-    listElement.innerHTML = '';
-    tasks.forEach(taskData => {
-        // Validate task data structure
-        if (taskData.goal !== undefined && taskData.purpose !== undefined && 
-            taskData.todo !== undefined && taskData.timing !== undefined) {
-            const newTask = createTaskElement(taskData, listId === 'in-progress-list');
-            listElement.appendChild(newTask);
-        } else {
-            console.warn('Invalid task data:', taskData);
-        }
-    });
+  });
 }
 
 // Create single task <li>
 function createTaskElement(taskData, isInProgress) {
-    const newTask = document.createElement('li');
-    newTask.className = 'list-group-item d-flex justify-content-between align-items-center';
-    const taskText = `${taskData.goal} ${taskData.purpose} [ ${taskData.todo} ] ${taskData.timing}`;
-    newTask.textContent = taskText;
+  const newTask = document.createElement("li");
+  newTask.className =
+    "list-group-item d-flex justify-content-between align-items-center";
+  const taskText = `${taskData.goal} ${taskData.purpose} [ ${taskData.todo} ] ${taskData.timing}`;
+  newTask.textContent = taskText;
 
-    newTask.dataset.taskData = JSON.stringify(taskData);
-    newTask.addEventListener('dblclick', () => editTask(newTask));
+  newTask.dataset.taskData = JSON.stringify(taskData);
+  newTask.addEventListener("dblclick", () => editTask(newTask));
 
-    const button = document.createElement('button');
-    button.className = isInProgress ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-success';
-    button.textContent = isInProgress ? 'Complete' : 'In Progress';
-    button.addEventListener('click', () => {
-        if (isInProgress) {
-            removeFromInProgress(newTask);
-        } else {
-            moveToInProgress(newTask);
-        }
-    });
-    newTask.appendChild(button);
+  const button = document.createElement("button");
+  button.className = isInProgress
+    ? "btn btn-sm btn-outline-danger"
+    : "btn btn-sm btn-outline-success";
+  button.textContent = isInProgress ? "Complete" : "In Progress";
+  button.addEventListener("click", () => {
+    if (isInProgress) {
+      removeFromInProgress(newTask);
+    } else {
+      moveToInProgress(newTask);
+    }
+  });
+  newTask.appendChild(button);
 
-    return newTask;
+  return newTask;
 }
 
 // Move to In Progress section
 function moveToInProgress(task) {
-    const inProgressList = document.getElementById('in-progress-list');
-    inProgressList.prepend(task);
-    const button = task.querySelector('button');
-    button.className = 'btn btn-sm btn-outline-danger';
-    button.textContent = 'Complete';
-    button.onclick = () => removeFromInProgress(task);
-    debouncedSaveTasks(); // Debounced save
+  const inProgressList = document.getElementById("in-progress-list");
+  inProgressList.prepend(task);
+  const button = task.querySelector("button");
+  button.className = "btn btn-sm btn-outline-danger";
+  button.textContent = "Complete";
+  button.onclick = () => removeFromInProgress(task);
+  debouncedSaveTasks(); // Debounced save
 }
 
 // Remove from In Progress
 function removeFromInProgress(task) {
-    task.remove();
-    debouncedSaveTasks(); // Debounced save
+  task.remove();
+  debouncedSaveTasks(); // Debounced save
 }
 
 // Trigger save
 function saveTasks() {
-    const todoTasks = Array.from(document.getElementById('todo-list').children)
-        .map(li => JSON.parse(li.dataset.taskData));
-    const inProgressTasks = Array.from(document.getElementById('in-progress-list').children)
-        .map(li => JSON.parse(li.dataset.taskData));
-    const noteText = noteEditor ? noteEditor.getValue() : '';
+  const todoTasks = Array.from(
+    document.getElementById("todo-list").children,
+  ).map((li) => JSON.parse(li.dataset.taskData));
+  const inProgressTasks = Array.from(
+    document.getElementById("in-progress-list").children,
+  ).map((li) => JSON.parse(li.dataset.taskData));
+  const noteText = noteEditor ? noteEditor.getValue() : "";
 
-    const data = {
-        note_data: noteText,
-        todo_data: todoTasks,
-        in_progress_data: inProgressTasks
-    };
+  const data = {
+    note_data: noteText,
+    todo_data: todoTasks,
+    in_progress_data: inProgressTasks,
+  };
 
-    const saveButton = document.getElementById('save-tasks');
-    const originalHTML = saveButton.innerHTML;
-    saveButton.innerHTML = '<span class="spinner"></span>';
+  const saveButton = document.getElementById("save-tasks");
+  const originalHTML = saveButton.innerHTML;
+  saveButton.innerHTML = '<span class="spinner"></span>';
 
-    saveTasksToAPI(data)
-        .then(res => {
-            if (!res.success) {
-                showErrorMessage('Save Failed', 'Unable to save tasks and notes: ' + (res.message || 'Unknown error'));
-            } else {
-                // showSuccessMessage('Saved', 'Tasks and notes saved successfully');
-            }
-        })
-        .catch(e => {
-            showErrorMessage('Error', 'Unknown error occurred: ' + e.message);
-        })
-        .finally(() => {
-            saveButton.innerHTML = originalHTML;
-        });
+  saveTasksToAPI(data)
+    .then((res) => {
+      if (!res.success) {
+        showErrorMessage(
+          "Save Failed",
+          "Unable to save tasks and notes: " + (res.message || "Unknown error"),
+        );
+      } else {
+        // showSuccessMessage('Saved', 'Tasks and notes saved successfully');
+      }
+    })
+    .catch((e) => {
+      showErrorMessage("Error", "Unknown error occurred: " + e.message);
+    })
+    .finally(() => {
+      saveButton.innerHTML = originalHTML;
+    });
 }
 
 // Add a new task (pop-up SweetAlert2 input)
 function addTask() {
-    Swal.fire({
-        title: 'Add Task',
-        input: 'text',
-        inputPlaceholder: 'Goal, Purpose, Task, Timing',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'Add',
-        inputValidator: (value) => {
-            if (!value) {
-                return 'Please enter task content';
-            }
-            const values = value.split(',');
-            if (values.length !== 4) {
-                return 'Please ensure four items are entered, separated by commas';
-            }
-        }
-    }).then((result) => {
-        if (result.value) {
-            const [goal, purpose, todo, timing] = result.value.split(',');
-            const taskData = { 
-                goal: goal.trim(), 
-                purpose: purpose.trim(), 
-                todo: todo.trim(), 
-                timing: timing.trim()
-            };
-            const todoList = document.getElementById('todo-list');
-            const newTask = createTaskElement(taskData, false);
-            todoList.prepend(newTask);
-            debouncedSaveTasks(); // Debounced save
-        }
-    });
+  disableEnterListener();
+
+  Swal.fire({
+    title: "Add Task",
+    input: "text",
+    inputPlaceholder: "Goal, Purpose, Task, Timing",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    confirmButtonText: "Add",
+    inputValidator: (value) => {
+      if (!value) {
+        return "Please enter task content";
+      }
+      const values = value.split(",");
+      if (values.length !== 4) {
+        return "Please ensure four items are entered, separated by commas";
+      }
+    },
+  }).then((result) => {
+    enableEnterListener();
+
+    if (result.value) {
+      const [goal, purpose, todo, timing] = result.value.split(",");
+      const taskData = {
+        goal: goal.trim(),
+        purpose: purpose.trim(),
+        todo: todo.trim(),
+        timing: timing.trim(),
+      };
+      const todoList = document.getElementById("todo-list");
+      const newTask = createTaskElement(taskData, false);
+      todoList.prepend(newTask);
+      debouncedSaveTasks(); // Debounced save
+    }
+  });
 }
 
 // Edit a single task
 function editTask(task) {
-    const taskData = JSON.parse(task.dataset.taskData);
-    const initialValue = `${taskData.goal}, ${taskData.purpose}, ${taskData.todo}, ${taskData.timing}`;
-    
-    Swal.fire({
-        title: 'Edit Task',
-        input: 'text',
-        inputPlaceholder: 'Goal, Purpose, Task, Timing',
-        inputValue: initialValue,
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'Save',
-        inputValidator: (value) => {
-            if (!value) {
-                return 'Please enter task content';
-            }
-            const values = value.split(',');
-            if (values.length !== 4) {
-                return 'Please ensure four items are entered, separated by commas';
-            }
-        }
-    }).then((result) => {
-        if (result.value) {
-            const [goal, purpose, todo, timing] = result.value.split(',');
-            const newTaskData = { 
-                goal: goal.trim(), 
-                purpose: purpose.trim(), 
-                todo: todo.trim(), 
-                timing: timing.trim()
-            };
-            task.dataset.taskData = JSON.stringify(newTaskData);
-            task.childNodes[0].textContent = `${newTaskData.goal} ${newTaskData.purpose} [ ${newTaskData.todo} ] ${newTaskData.timing}`;
-            debouncedSaveTasks(); // Debounced save
-        }
-    });
+  disableEnterListener();
+
+  const taskData = JSON.parse(task.dataset.taskData);
+  const initialValue = `${taskData.goal}, ${taskData.purpose}, ${taskData.todo}, ${taskData.timing}`;
+
+  Swal.fire({
+    title: "Edit Task",
+    input: "text",
+    inputPlaceholder: "Goal, Purpose, Task, Timing",
+    inputValue: initialValue,
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    confirmButtonText: "Save",
+    inputValidator: (value) => {
+      if (!value) {
+        return "Please enter task content";
+      }
+      const values = value.split(",");
+      if (values.length !== 4) {
+        return "Please ensure four items are entered, separated by commas";
+      }
+    },
+  }).then((result) => {
+    enableEnterListener();
+
+    if (result.value) {
+      const [goal, purpose, todo, timing] = result.value.split(",");
+      const newTaskData = {
+        goal: goal.trim(),
+        purpose: purpose.trim(),
+        todo: todo.trim(),
+        timing: timing.trim(),
+      };
+      task.dataset.taskData = JSON.stringify(newTaskData);
+      task.childNodes[0].textContent = `${newTaskData.goal} ${newTaskData.purpose} [ ${newTaskData.todo} ] ${newTaskData.timing}`;
+      debouncedSaveTasks(); // Debounced save
+    }
+  });
 }
 
 // Clear In Progress tasks
 function clearInProgress() {
-    document.getElementById('in-progress-list').innerHTML = '';
-    debouncedSaveTasks(); // Debounced save
+  Swal.fire({
+    title: "Type CONFIRM to clear all In Progress tasks",
+    input: "text",
+    inputPlaceholder: "Enter CONFIRM",
+    showCancelButton: true,
+    confirmButtonText: "Clear",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    preConfirm: (value) => {
+      if (value !== "CONFIRM") {
+        Swal.showValidationMessage("You must type CONFIRM to proceed.");
+        return false;
+      }
+      return true;
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.getElementById("in-progress-list").innerHTML = "";
+      debouncedSaveTasks();
+
+      Swal.fire({
+        icon: "success",
+        title: "Cleared",
+        text: "All In Progress tasks have been removed.",
+        showConfirmButton: false,
+        timer: 1200,
+      });
+    }
+  });
 }
 
 // Initialize drag-and-drop sorting
 function initializeSortable() {
-    if (window.matchMedia("(min-width: 768px)").matches) {
-        new Sortable(document.getElementById('todo-list'), {
-            group: 'shared',
-            animation: 150,
-            ghostClass: 'blue-background-class',
-            onEnd: function (evt) {
-                if (evt.to.id === 'in-progress-list') {
-                    const button = evt.item.querySelector('button');
-                    button.className = 'btn btn-sm btn-outline-danger';
-                    button.textContent = 'Complete';
-                    button.onclick = () => removeFromInProgress(evt.item);
-                }
-                debouncedSaveTasks(); // Debounced save
-            }
-        });
+  if (window.matchMedia("(min-width: 768px)").matches) {
+    new Sortable(document.getElementById("todo-list"), {
+      group: "shared",
+      animation: 150,
+      ghostClass: "blue-background-class",
+      onEnd: function(evt) {
+        if (evt.to.id === "in-progress-list") {
+          const button = evt.item.querySelector("button");
+          button.className = "btn btn-sm btn-outline-danger";
+          button.textContent = "Complete";
+          button.onclick = () => removeFromInProgress(evt.item);
+        }
+        debouncedSaveTasks(); // Debounced save
+      },
+    });
 
-        new Sortable(document.getElementById('in-progress-list'), {
-            group: 'shared',
-            animation: 150,
-            ghostClass: 'blue-background-class',
-            onEnd: function (evt) {
-                if (evt.to.id === 'todo-list') {
-                    const button = evt.item.querySelector('button');
-                    button.className = 'btn btn-sm btn-outline-success';
-                    button.textContent = 'In Progress';
-                    button.onclick = () => moveToInProgress(evt.item);
-                }
-                debouncedSaveTasks(); // Debounced save
-            }
-        });
-    } else {
-        console.log('Sortable disabled on small screens.');
-    }
+    new Sortable(document.getElementById("in-progress-list"), {
+      group: "shared",
+      animation: 150,
+      ghostClass: "blue-background-class",
+      onEnd: function(evt) {
+        if (evt.to.id === "todo-list") {
+          const button = evt.item.querySelector("button");
+          button.className = "btn btn-sm btn-outline-success";
+          button.textContent = "In Progress";
+          button.onclick = () => moveToInProgress(evt.item);
+        }
+        debouncedSaveTasks(); // Debounced save
+      },
+    });
+  } else {
+    console.log("Sortable disabled on small screens.");
+  }
 }
 
 // Trigger add task pop-up on Enter key in list view
 function enterKeyListener(event) {
-    if (event.key === 'Enter' && (!noteEditor || !noteEditor.hasFocus())) {
-        addTaskButton.click();
-    }
+  if (event.isComposing) return;
+
+  const active = document.activeElement;
+  const isTyping =
+    active &&
+    (active.tagName === "INPUT" ||
+      active.tagName === "TEXTAREA" ||
+      active.isContentEditable);
+
+  if (
+    event.key === "Enter" &&
+    !isTyping &&
+    (!noteEditor || !noteEditor.hasFocus())
+  ) {
+    addTaskButton.click();
+  }
 }
 
 // Switch to Notebook on Tab key in list view
 function tabKeyListener(event) {
-    if (event.key === 'Tab' && (!noteEditor || !noteEditor.hasFocus() && !isVimModeActive())) {
-        event.preventDefault(); // Prevent default Tab behavior
-        toggleNote();
-    }
+  if (
+    event.key === "Tab" &&
+    (!noteEditor || (!noteEditor.hasFocus() && !isVimModeActive()))
+  ) {
+    event.preventDefault(); // Prevent default Tab behavior
+    toggleNote();
+  }
 }
 
 // Check if CodeMirror Vim mode is active
 function isVimModeActive() {
-    return noteEditor && noteEditor.getOption('keyMap') === 'vim' && noteEditor.state.vim && noteEditor.state.vim.insertMode;
+  return (
+    noteEditor &&
+    noteEditor.getOption("keyMap") === "vim" &&
+    noteEditor.state.vim &&
+    noteEditor.state.vim.insertMode
+  );
 }
 
 // Toggle between List and Notebook
 function toggleNote() {
-    if (todoContainer.style.display !== 'none') {
-        // Switch to Notebook
-        document.removeEventListener('keydown', enterKeyListener);
-        todoContainer.style.display = 'none';
-        mainTitle.textContent = 'Notebook';
-        if (!noteContainer) {
-            createNoteContainer();
-        } else {
-            noteContainer.style.display = 'block';
-        }
-        noteButton.textContent = 'To-Do List';
+  if (todoContainer.style.display !== "none") {
+    // Switch to Notebook
+    document.removeEventListener("keydown", enterKeyListener);
+    todoContainer.style.display = "none";
+    mainTitle.textContent = "Notebook";
+    if (!noteContainer) {
+      createNoteContainer();
     } else {
-        // Switch back to To-Do List
-        document.addEventListener('keydown', enterKeyListener);
-        showTodoView();
+      noteContainer.style.display = "block";
     }
-    // Ensure tabKeyListener is always active
-    document.addEventListener('keydown', tabKeyListener);
+    noteButton.textContent = "To-Do List";
+  } else {
+    // Switch back to To-Do List
+    document.addEventListener("keydown", enterKeyListener);
+    showTodoView();
+  }
+  // Ensure tabKeyListener is always active
+  document.addEventListener("keydown", tabKeyListener);
 }
 
 // Dynamically create note container and initialize CodeMirror
 function createNoteContainer() {
-    // 建立外層容器
-    noteContainer = document.createElement('div');
-    noteContainer.id = 'note-container';
-    noteContainer.className = 'container-fluid p-0';
-    mainContent.appendChild(noteContainer);
+  // 建立外層容器
+  noteContainer = document.createElement("div");
+  noteContainer.id = "note-container";
+  noteContainer.className = "container-fluid p-0";
+  mainContent.appendChild(noteContainer);
 
-    // 新增標題 Header
-    const header = document.createElement('h6');
-    header.className = 'text-center text-white mt-2';
-    header.innerHTML = `
+  // 新增標題 Header
+  const header = document.createElement("h6");
+  header.className = "text-center text-white mt-2";
+  header.innerHTML = `
       <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Vimlogo.svg" 
            alt="Vim Logo" 
            style="height: 1.2em; vertical-align: middle; margin-right: 0.4em;">
       <span style="vertical-align: middle;">Notebook</span>
     `;
-    noteContainer.appendChild(header);
+  noteContainer.appendChild(header);
 
-    // 判斷螢幕寬度是否顯示行號
-    const showLineNumbers = window.matchMedia("(min-width: 768px)").matches;
+  // 判斷螢幕寬度是否顯示行號
+  const showLineNumbers = window.matchMedia("(min-width: 768px)").matches;
 
-    // 建立 CodeMirror 編輯器容器
-    const editorContainer = document.createElement('div');
-    editorContainer.id = 'editor';
-    noteContainer.appendChild(editorContainer);
+  // 建立 CodeMirror 編輯器容器
+  const editorContainer = document.createElement("div");
+  editorContainer.id = "editor";
+  noteContainer.appendChild(editorContainer);
 
-    // 初始化 CodeMirror
-    noteEditor = CodeMirror(editorContainer, {
-        lineNumbers: showLineNumbers,
-        theme: 'monokai',
-        mode: { name: "markdown", highlightFormatting: true },
-        keyMap: 'vim',
-        styleActiveLine: true,
-        foldGutter: true,
-        gutters: showLineNumbers
-            ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-            : ["CodeMirror-foldgutter"],
-        lineNumberFormatter: function(line) {
-            if (!noteEditor) return line;
-            const cursorLine = noteEditor.getCursor().line + 1;
-            return line === cursorLine ? String(line) : String(Math.abs(cursorLine - line));
-        },
-        extraKeys: {
-            "Ctrl-Q": function(cm) { cm.foldCode(cm.getCursor()); },
-            "Ctrl-C": function(cm) {
-                const selectedText = cm.getSelection();
-                if (selectedText) {
-                    navigator.clipboard.writeText(selectedText)
-                        .then(() => console.log('Text copied!'))
-                        .catch(err => console.error('Copy error:', err));
-                }
-            }
+  // 初始化 CodeMirror
+  noteEditor = CodeMirror(editorContainer, {
+    lineNumbers: showLineNumbers,
+    theme: "monokai",
+    mode: { name: "markdown", highlightFormatting: true },
+    keyMap: "vim",
+    styleActiveLine: true,
+    foldGutter: true,
+    gutters: showLineNumbers
+      ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+      : ["CodeMirror-foldgutter"],
+    lineNumberFormatter: function(line) {
+      if (!noteEditor) return line;
+      const cursorLine = noteEditor.getCursor().line + 1;
+      return line === cursorLine
+        ? String(line)
+        : String(Math.abs(cursorLine - line));
+    },
+    extraKeys: {
+      "Ctrl-Q": function(cm) {
+        cm.foldCode(cm.getCursor());
+      },
+      "Ctrl-C": function(cm) {
+        const selectedText = cm.getSelection();
+        if (selectedText) {
+          navigator.clipboard
+            .writeText(selectedText)
+            .then(() => console.log("Text copied!"))
+            .catch((err) => console.error("Copy error:", err));
         }
-    });
+      },
+    },
+  });
 
-    noteEditor.on('cursorActivity', () => {
-        const cursor = noteEditor.getCursor();
-        noteEditor.scrollIntoView({ line: cursor.line, ch: cursor.ch }, 0);
-        setTimeout(() => {
-            noteEditor.refresh();
-        }, 10);
-    });
+  noteEditor.on("cursorActivity", () => {
+    const cursor = noteEditor.getCursor();
+    noteEditor.scrollIntoView({ line: cursor.line, ch: cursor.ch }, 0);
+    setTimeout(() => {
+      noteEditor.refresh();
+    }, 10);
+  });
 
-    // Vim 特定快捷鍵
-    CodeMirror.Vim.defineAction("foldCurrent", cm => cm.foldCode(cm.getCursor()));
-    CodeMirror.Vim.defineAction("unfoldCurrent", cm => cm.foldCode(cm.getCursor(), null, "unfold"));
-    CodeMirror.Vim.defineAction("foldAll", cm => {
-        cm.operation(() => {
-            for (let i = 0; i < cm.lineCount(); i++)
-                cm.foldCode(CodeMirror.Pos(i, 0));
-        });
+  // Vim 特定快捷鍵
+  CodeMirror.Vim.defineAction("foldCurrent", (cm) =>
+    cm.foldCode(cm.getCursor()),
+  );
+  CodeMirror.Vim.defineAction("unfoldCurrent", (cm) =>
+    cm.foldCode(cm.getCursor(), null, "unfold"),
+  );
+  CodeMirror.Vim.defineAction("foldAll", (cm) => {
+    cm.operation(() => {
+      for (let i = 0; i < cm.lineCount(); i++)
+        cm.foldCode(CodeMirror.Pos(i, 0));
     });
-    CodeMirror.Vim.defineAction("unfoldAll", cm => {
-        cm.operation(() => {
-            for (let i = 0; i < cm.lineCount(); i++)
-                cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
-        });
+  });
+  CodeMirror.Vim.defineAction("unfoldAll", (cm) => {
+    cm.operation(() => {
+      for (let i = 0; i < cm.lineCount(); i++)
+        cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
     });
+  });
 
-    CodeMirror.Vim.mapCommand("zc", "action", "foldCurrent", {});
-    CodeMirror.Vim.mapCommand("zo", "action", "unfoldCurrent", {});
-    CodeMirror.Vim.mapCommand("zM", "action", "foldAll", {});
-    CodeMirror.Vim.mapCommand("zR", "action", "unfoldAll", {});
-    CodeMirror.Vim.map("jk", "<Esc>", "insert");
-    CodeMirror.Vim.map("t", "ggvG$", "normal");
-    CodeMirror.Vim.map("L", "$", "normal");
-    CodeMirror.Vim.map("H", "0", "normal");
+  CodeMirror.Vim.mapCommand("zc", "action", "foldCurrent", {});
+  CodeMirror.Vim.mapCommand("zo", "action", "unfoldCurrent", {});
+  CodeMirror.Vim.mapCommand("zM", "action", "foldAll", {});
+  CodeMirror.Vim.mapCommand("zR", "action", "unfoldAll", {});
+  CodeMirror.Vim.map("jk", "<Esc>", "insert");
+  CodeMirror.Vim.map("t", "ggvG$", "normal");
+  CodeMirror.Vim.map("L", "$", "normal");
+  CodeMirror.Vim.map("H", "0", "normal");
 
-    setTimeout(() => CodeMirror.Vim.handleKey(noteEditor, 'i'), 500);
+  setTimeout(() => CodeMirror.Vim.handleKey(noteEditor, "i"), 500);
 }
-
 
 // Update Notebook content
 function updateNoteContent(noteText) {
-    if (!noteContainer) {
-        createNoteContainer();
-    }
-    if (noteEditor) {
-        noteEditor.setValue(noteText || '');
-    }
-    noteContainer.style.display = 'none';
+  if (!noteContainer) {
+    createNoteContainer();
+  }
+  if (noteEditor) {
+    noteEditor.setValue(noteText || "");
+  }
+  noteContainer.style.display = "none";
 }
 
 // Clear all tasks
 function clearTasks() {
-    document.getElementById('todo-list').innerHTML = '';
-    document.getElementById('in-progress-list').innerHTML = '';
-    if (noteEditor) {
-        noteEditor.setValue('');
-    }
-    debouncedSaveTasks(); // Debounced save
+  document.getElementById("todo-list").innerHTML = "";
+  document.getElementById("in-progress-list").innerHTML = "";
+  if (noteEditor) {
+    noteEditor.setValue("");
+  }
+  debouncedSaveTasks(); // Debounced save
 }
 
 // Show success message
 function showSuccessMessage(title, text) {
-    Swal.fire({
-        icon: 'success',
-        title: title,
-        text: text,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#ff9800'
-    });
+  Swal.fire({
+    icon: "success",
+    title: title,
+    text: text,
+    confirmButtonText: "OK",
+    confirmButtonColor: "#ff9800",
+  });
 }
 
 // Show error message
 function showErrorMessage(title, text) {
-    Swal.fire({
-        icon: 'error',
-        title: title,
-        text: text,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#ff9800'
-    });
+  Swal.fire({
+    icon: "error",
+    title: title,
+    text: text,
+    confirmButtonText: "OK",
+    confirmButtonColor: "#ff9800",
+  });
 }

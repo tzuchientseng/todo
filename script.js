@@ -1,2239 +1,678 @@
-const _0x424f06 = _0x7801;
-(function(_0x9544fe, _0x48eb46) {
-  const _0x22d3f7 = _0x7801,
-    _0x7611ba = _0x9544fe();
-  while (!![]) {
-    try {
-      const _0x596c36 =
-        (parseInt(_0x22d3f7(0x22d)) /
-          (-0x11de * 0x1 + -0x10 * 0x128 + 0x245f)) *
-        (-parseInt(_0x22d3f7(0x303)) / (0x13d5 + -0x16bc + -0x95 * -0x5)) +
-        -parseInt(_0x22d3f7(0x153)) / (0x49f + 0x3e + 0x4da * -0x1) +
-        -parseInt(_0x22d3f7(0x2fc)) /
-        (-0x11 * 0x23f + -0x13fc * -0x1 + 0x1237) +
-        (-parseInt(_0x22d3f7(0x1c1)) / (-0x336 * -0x1 + 0x46 + -0x377)) *
-        (parseInt(_0x22d3f7(0x20a)) / (0x21d5 + -0x1a11 + -0x7be)) +
-        parseInt(_0x22d3f7(0x145)) / (-0x2499 + 0x1060 + -0x10 * -0x144) +
-        -parseInt(_0x22d3f7(0x2ee)) /
-        (-0x5 * 0x3f1 + -0x1664 * 0x1 + 0x5 * 0x86d) +
-        (-parseInt(_0x22d3f7(0x191)) / (0x1b * -0x1d + 0x4c7 + -0x1 * 0x1af)) *
-        (-parseInt(_0x22d3f7(0x2da)) /
-          (-0x201 * 0x3 + -0x23ab + 0x14 * 0x216));
-      if (_0x596c36 === _0x48eb46) break;
-      else _0x7611ba["push"](_0x7611ba["shift"]());
-    } catch (_0x12e7a6) {
-      _0x7611ba["push"](_0x7611ba["shift"]());
-    }
-  }
-})(_0x1cb6, 0x77d5 * 0x3 + 0x5a3fd * 0x2 + -0x1f1bc);
-const API_BASE_URL = _0x424f06(0x297) + _0x424f06(0x1d9) + _0x424f06(0x2fe);
+/********************************************/
+/* 1) Hard-coded Login + Backend API Functions for Fetching/Saving Tasks */
+/********************************************/
+const API_BASE_URL = "https://sunnytseng.com/api";
 let TOKEN = null;
-function debounce(_0x45dd5a, _0x7b2e1e) {
-  const _0x13e2c9 = {
-    SQCrF: function(_0x4db2fc, _0x2b4a93) {
-      return _0x4db2fc(_0x2b4a93);
-    },
-    INOJL: function(_0x249f42, _0x24f780, _0x12dfb0) {
-      return _0x249f42(_0x24f780, _0x12dfb0);
-    },
-  };
-  let _0x3a97eb;
-  return function _0xb49831(..._0x9cd0b3) {
-    const _0x39694a = _0x7801,
-      _0x26f071 = () => {
-        const _0x21b499 = _0x7801;
-        (_0x13e2c9[_0x21b499(0x289)](clearTimeout, _0x3a97eb),
-          _0x13e2c9[_0x21b499(0x289)](_0x45dd5a, ..._0x9cd0b3));
-      };
-    (_0x13e2c9[_0x39694a(0x289)](clearTimeout, _0x3a97eb),
-      (_0x3a97eb = _0x13e2c9[_0x39694a(0x201)](
-        setTimeout,
-        _0x26f071,
-        _0x7b2e1e,
-      )));
+
+const PASSWORD_HASH =
+  "2348f998744212575d85959674f9607ab26f67708a917157472832386337c904";
+
+// Debounce function to reduce frequent API requests
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
   };
 }
+
 function disableEnterListener() {
-  const _0x43ed1c = _0x424f06,
-    _0x40c234 = { iSfgf: _0x43ed1c(0x1d2) };
-  document[_0x43ed1c(0x2a0) + _0x43ed1c(0x2ae)](
-    _0x40c234[_0x43ed1c(0x16b)],
-    enterKeyListener,
-  );
+  document.removeEventListener("keydown", enterKeyListener);
 }
+
 function enableEnterListener() {
-  const _0x2041ad = _0x424f06,
-    _0x225bd3 = { xemLS: _0x2041ad(0x1d2) };
-  document[_0x2041ad(0x288) + _0x2041ad(0x247)](
-    _0x225bd3[_0x2041ad(0x171)],
-    enterKeyListener,
-  );
+  document.addEventListener("keydown", enterKeyListener);
 }
+
+// Login and obtain Token
 async function login_and_get_token() {
-  const _0x58d0f4 = _0x424f06,
-    _0x5e5a85 = {
-      vtqKE: _0x58d0f4(0x22c),
-      xQtHP: _0x58d0f4(0x2ea),
-      XWQZS: function(_0x40c935, _0x21b801, _0x1a7bf5) {
-        return _0x40c935(_0x21b801, _0x1a7bf5);
-      },
-      Qfoyd: _0x58d0f4(0x150),
-      dvxBz: _0x58d0f4(0x220) + _0x58d0f4(0x236),
-      NyxwF: _0x58d0f4(0x2ba) + _0x58d0f4(0x127) + ":",
-      VTEwU:
-        _0x58d0f4(0x207) +
-        _0x58d0f4(0x161) +
-        _0x58d0f4(0x13d) +
-        _0x58d0f4(0x18f),
-      wYCCd:
-        _0x58d0f4(0x2d6) +
-        _0x58d0f4(0x14c) +
-        _0x58d0f4(0x22b) +
-        _0x58d0f4(0x1fb) +
-        _0x58d0f4(0x1ef),
-      PeXAG: _0x58d0f4(0x20f) + _0x58d0f4(0x2aa) + _0x58d0f4(0x255),
-      eGfYl: _0x58d0f4(0x1a4) + "r:",
-    },
-    _0x4901a8 = {
-      username: _0x5e5a85[_0x58d0f4(0x208)],
-      password: _0x5e5a85[_0x58d0f4(0x1ee)],
-    };
-  try {
-    let _0x586565 = await _0x5e5a85[_0x58d0f4(0x19f)](
-      fetch,
-      API_BASE_URL + _0x58d0f4(0x202),
-      {
-        method: _0x5e5a85[_0x58d0f4(0x321)],
-        headers: { "Content-Type": _0x5e5a85[_0x58d0f4(0x30b)] },
-        body: JSON[_0x58d0f4(0x331)](_0x4901a8),
-      },
-    );
-    if (!_0x586565["ok"]) {
-      let _0x481ac7 = await _0x586565[_0x58d0f4(0x22e)]();
-      console[_0x58d0f4(0x222)](
-        _0x5e5a85[_0x58d0f4(0x1ba)],
-        _0x586565[_0x58d0f4(0x333)],
-        _0x481ac7,
-      );
-      throw new Error(
-        _0x58d0f4(0x2d6) +
-        _0x58d0f4(0x102) +
-        _0x586565[_0x58d0f4(0x333)] +
-        "\x20" +
-        _0x481ac7,
-      );
-    }
-    let _0x5d4fa2 = await _0x586565[_0x58d0f4(0x1a3)]();
-    TOKEN = _0x5d4fa2[_0x58d0f4(0x1fe)];
-    if (TOKEN) console[_0x58d0f4(0x1e1)](_0x5e5a85[_0x58d0f4(0x158)]);
-    else {
-      console[_0x58d0f4(0x222)](_0x5e5a85[_0x58d0f4(0x27e)]);
-      throw new Error(_0x5e5a85[_0x58d0f4(0x23e)]);
-    }
-  } catch (_0x8a344) {
-    console[_0x58d0f4(0x222)](_0x5e5a85[_0x58d0f4(0x117)], _0x8a344);
-    throw _0x8a344;
-  }
-}
-async function fetchTasksFromAPI() {
-  const _0x3a0e4b = _0x424f06,
-    _0x1cd4cd = {
-      FgwJA: function(_0x396eb1) {
-        return _0x396eb1();
-      },
-      paVFk: function(_0x1964af, _0x41d292, _0x10141c) {
-        return _0x1964af(_0x41d292, _0x10141c);
-      },
-      HEjKw: _0x3a0e4b(0x31e),
-      RDJhl: function(_0x7b537, _0x539294) {
-        return _0x7b537 === _0x539294;
-      },
-      EcDCO:
-        _0x3a0e4b(0x2d3) +
-        _0x3a0e4b(0x214) +
-        _0x3a0e4b(0x257) +
-        _0x3a0e4b(0x254) +
-        _0x3a0e4b(0x15e),
-      crVgx: _0x3a0e4b(0x1ff) + _0x3a0e4b(0x29f),
-      nUAgX: function(_0x17ca39, _0x1aa418) {
-        return _0x17ca39 === _0x1aa418;
-      },
-      PCcuf: _0x3a0e4b(0x245),
-      RKwtw: function(_0x336deb, _0x3e03b3) {
-        return _0x336deb !== _0x3e03b3;
-      },
-      pTDrg:
-        _0x3a0e4b(0x18b) +
-        _0x3a0e4b(0x211) +
-        _0x3a0e4b(0x282) +
-        _0x3a0e4b(0x2cd) +
-        _0x3a0e4b(0x2a6) +
-        _0x3a0e4b(0x31a) +
-        _0x3a0e4b(0x2fb) +
-        _0x3a0e4b(0x179) +
-        _0x3a0e4b(0x1ad) +
-        "a)",
-      TDnPh: _0x3a0e4b(0x330) + _0x3a0e4b(0x281) + ":",
-    };
-  if (!TOKEN) await _0x1cd4cd[_0x3a0e4b(0x156)](login_and_get_token);
-  try {
-    let _0x503de2 = await _0x1cd4cd[_0x3a0e4b(0x128)](
-      fetch,
-      API_BASE_URL + (_0x3a0e4b(0x1c6) + _0x3a0e4b(0x14a)),
-      {
-        method: _0x1cd4cd[_0x3a0e4b(0x155)],
-        headers: { Authorization: _0x3a0e4b(0x1d1) + TOKEN },
-      },
-    );
-    _0x1cd4cd[_0x3a0e4b(0x2d7)](
-      _0x503de2[_0x3a0e4b(0x333)],
-      0xd3 * -0x11 + 0x128f * 0x1 + 0x6d * -0x7,
-    ) &&
-      (console[_0x3a0e4b(0x1e1)](_0x1cd4cd[_0x3a0e4b(0x17f)]),
-        await _0x1cd4cd[_0x3a0e4b(0x156)](login_and_get_token),
-        (_0x503de2 = await _0x1cd4cd[_0x3a0e4b(0x128)](
-          fetch,
-          API_BASE_URL + (_0x3a0e4b(0x1c6) + _0x3a0e4b(0x14a)),
-          {
-            method: _0x1cd4cd[_0x3a0e4b(0x155)],
-            headers: { Authorization: _0x3a0e4b(0x1d1) + TOKEN },
-          },
-        )));
-    if (!_0x503de2["ok"]) {
-      let _0x4c59a = await _0x503de2[_0x3a0e4b(0x22e)]();
-      console[_0x3a0e4b(0x222)](
-        _0x1cd4cd[_0x3a0e4b(0x110)],
-        _0x503de2[_0x3a0e4b(0x333)],
-        _0x4c59a,
-      );
-      throw new Error(
-        _0x3a0e4b(0x272) +
-        _0x3a0e4b(0x284) +
-        _0x3a0e4b(0x1fc) +
-        _0x503de2[_0x3a0e4b(0x333)] +
-        "\x20" +
-        _0x4c59a,
-      );
-    }
-    let _0x42f261 = await _0x503de2[_0x3a0e4b(0x1a3)]();
-    if (
-      _0x42f261 &&
-      _0x1cd4cd[_0x3a0e4b(0x277)](
-        typeof _0x42f261,
-        _0x1cd4cd[_0x3a0e4b(0x165)],
-      ) &&
-      _0x1cd4cd[_0x3a0e4b(0x29a)](_0x42f261[_0x3a0e4b(0x194)], undefined) &&
-      _0x1cd4cd[_0x3a0e4b(0x29a)](_0x42f261[_0x3a0e4b(0x24c)], undefined) &&
-      _0x1cd4cd[_0x3a0e4b(0x29a)](
-        _0x42f261[_0x3a0e4b(0x12e) + _0x3a0e4b(0x2f8)],
-        undefined,
-      )
-    )
-      return _0x42f261;
-    else throw new Error(_0x1cd4cd[_0x3a0e4b(0x11b)]);
-  } catch (_0x17cb78) {
-    console[_0x3a0e4b(0x222)](_0x1cd4cd[_0x3a0e4b(0x19a)], _0x17cb78);
-    throw _0x17cb78;
-  }
-}
-async function saveTasksToAPI(_0x4c7203) {
-  const _0x35f05c = _0x424f06,
-    _0x187d2a = {
-      BlRHY: function(_0x1ebd51) {
-        return _0x1ebd51();
-      },
-      iTWKa: function(_0x25cca6, _0x530dbe, _0x179442) {
-        return _0x25cca6(_0x530dbe, _0x179442);
-      },
-      ctsiS: _0x35f05c(0x150),
-      FgPnT: _0x35f05c(0x220) + _0x35f05c(0x236),
-      UMAyX: function(_0x33ce17, _0x356177) {
-        return _0x33ce17 === _0x356177;
-      },
-      OhbGq:
-        _0x35f05c(0x2d3) +
-        _0x35f05c(0x214) +
-        _0x35f05c(0x257) +
-        _0x35f05c(0x254) +
-        _0x35f05c(0x15e),
-      QHAga: _0x35f05c(0x17b) + _0x35f05c(0x30c) + _0x35f05c(0x1a2),
-      vVTNn: _0x35f05c(0x1f7) + _0x35f05c(0x151),
-    };
-  if (!TOKEN) await _0x187d2a[_0x35f05c(0x1aa)](login_and_get_token);
-  try {
-    let _0x55b37b = await _0x187d2a[_0x35f05c(0x1ce)](
-      fetch,
-      API_BASE_URL + (_0x35f05c(0x16d) + _0x35f05c(0x323)),
-      {
-        method: _0x187d2a[_0x35f05c(0x225)],
-        headers: {
-          Authorization: _0x35f05c(0x1d1) + TOKEN,
-          "Content-Type": _0x187d2a[_0x35f05c(0x106)],
-        },
-        body: JSON[_0x35f05c(0x331)](_0x4c7203),
-      },
-    );
-    _0x187d2a[_0x35f05c(0x2be)](
-      _0x55b37b[_0x35f05c(0x333)],
-      0x196 + -0x2070 + -0x2b * -0xc1,
-    ) &&
-      (console[_0x35f05c(0x1e1)](_0x187d2a[_0x35f05c(0x22a)]),
-        await _0x187d2a[_0x35f05c(0x1aa)](login_and_get_token),
-        (_0x55b37b = await _0x187d2a[_0x35f05c(0x1ce)](
-          fetch,
-          API_BASE_URL + (_0x35f05c(0x16d) + _0x35f05c(0x323)),
-          {
-            method: _0x187d2a[_0x35f05c(0x225)],
-            headers: {
-              Authorization: _0x35f05c(0x1d1) + TOKEN,
-              "Content-Type": _0x187d2a[_0x35f05c(0x106)],
-            },
-            body: JSON[_0x35f05c(0x331)](_0x4c7203),
-          },
-        )));
-    if (!_0x55b37b["ok"]) {
-      let _0x45c3f0 = await _0x55b37b[_0x35f05c(0x22e)]();
-      console[_0x35f05c(0x222)](
-        _0x187d2a[_0x35f05c(0x160)],
-        _0x55b37b[_0x35f05c(0x333)],
-        _0x45c3f0,
-      );
-      throw new Error(
-        _0x35f05c(0x272) +
-        _0x35f05c(0x284) +
-        _0x35f05c(0x1fc) +
-        _0x55b37b[_0x35f05c(0x333)] +
-        "\x20" +
-        _0x45c3f0,
-      );
-    }
-    let _0x249e8e = await _0x55b37b[_0x35f05c(0x1a3)]();
-    return _0x249e8e;
-  } catch (_0x5386ff) {
-    console[_0x35f05c(0x222)](_0x187d2a[_0x35f05c(0x111)], _0x5386ff);
-    throw _0x5386ff;
-  }
-}
-const todoContainer = document[_0x424f06(0x229) + _0x424f06(0x2bd)](
-  _0x424f06(0x25f) + _0x424f06(0x104),
-),
-  mainTitle = document[_0x424f06(0x229) + _0x424f06(0x2bd)](_0x424f06(0x163)),
-  mainContent = document[_0x424f06(0x229) + _0x424f06(0x2bd)](
-    _0x424f06(0x137) + "nt",
-  ),
-  noteButton = document[_0x424f06(0x229) + _0x424f06(0x2bd)](_0x424f06(0x27a)),
-  saveButton = document[_0x424f06(0x229) + _0x424f06(0x2bd)](_0x424f06(0x2cb)),
-  addTaskButton = document[_0x424f06(0x229) + _0x424f06(0x2bd)](
-    _0x424f06(0x263),
-  ),
-  clearInProgressButton = document[_0x424f06(0x229) + _0x424f06(0x2bd)](
-    _0x424f06(0x13e) + _0x424f06(0x26e),
-  );
-let noteContainer = null,
-  noteEditor = null;
-const debouncedSaveTasks = debounce(saveTasks, 0xc55 + 0xa57 + -0x14b8);
-document[_0x424f06(0x288) + _0x424f06(0x247)](
-  _0x424f06(0x21a) + _0x424f06(0x132),
-  function() {
-    const _0x1debdf = _0x424f06,
-      _0x5205d8 = {
-        QWBog: function(_0x42841a, _0x170ae2) {
-          return _0x42841a !== _0x170ae2;
-        },
-        GtPsN: _0x1debdf(0x2ea),
-        RlyJQ:
-          _0x1debdf(0x203) +
-          _0x1debdf(0x308) +
-          _0x1debdf(0x31f) +
-          _0x1debdf(0x1e5),
-        hfTVu: _0x1debdf(0x180) + _0x1debdf(0x15a),
-        umBjV: function(_0x528c2a) {
-          return _0x528c2a();
-        },
-        pWzQF: function(_0x2ceb8b, _0xed17ac) {
-          return _0x2ceb8b === _0xed17ac;
-        },
-        HgtdY: _0x1debdf(0x133),
-        UHGZE: _0x1debdf(0x253),
-        RZAuc: _0x1debdf(0x325) + _0x1debdf(0x2e5) + "d",
-        Dltav: _0x1debdf(0x210),
-        ETFyZ: _0x1debdf(0x242),
-        UUJmw: _0x1debdf(0x1d2),
-        IHaoY: function(_0x3ddefa) {
-          return _0x3ddefa();
-        },
-      };
-    (Swal[_0x1debdf(0x2d1)]({
-      title: _0x5205d8[_0x1debdf(0x1d4)],
-      input: _0x5205d8[_0x1debdf(0x244)],
-      inputPlaceholder: _0x5205d8[_0x1debdf(0x2b7)],
-      showCancelButton: ![],
-      confirmButtonText: _0x5205d8[_0x1debdf(0x20b)],
-      confirmButtonColor: _0x5205d8[_0x1debdf(0x329)],
-      allowOutsideClick: ![],
-      preConfirm: (_0x3a63f0) => {
-        const _0xad525a = _0x1debdf;
-        _0x5205d8[_0xad525a(0x2dd)](_0x3a63f0, _0x5205d8[_0xad525a(0x2df)]) &&
-          Swal[_0xad525a(0x26f) + _0xad525a(0x114) + "e"](
-            _0x5205d8[_0xad525a(0x2c8)],
-          );
-      },
-    })[_0x1debdf(0x269)]((_0x1025ec) => {
-      const _0x2a64f2 = _0x1debdf;
-      _0x1025ec[_0x2a64f2(0x1d3) + "d"] &&
-        (document[_0x2a64f2(0x290)][_0x2a64f2(0x315)][_0x2a64f2(0x1a7)](
-          _0x5205d8[_0x2a64f2(0x195)],
-        ),
-          _0x5205d8[_0x2a64f2(0x15f)](initializePage));
-    }),
-      addTaskButton[_0x1debdf(0x2b0)](),
-      document[_0x1debdf(0x288) + _0x1debdf(0x247)](
-        _0x5205d8[_0x1debdf(0x1c8)],
-        enterKeyListener,
-      ),
-      document[_0x1debdf(0x288) + _0x1debdf(0x247)](
-        _0x5205d8[_0x1debdf(0x1c8)],
-        tabKeyListener,
-      ),
-      document[_0x1debdf(0x288) + _0x1debdf(0x247)](
-        _0x5205d8[_0x1debdf(0x1c8)],
-        function(_0x38c984) {
-          const _0x8d4840 = _0x1debdf;
-          _0x38c984[_0x8d4840(0x2bc)] &&
-            _0x5205d8[_0x8d4840(0x11e)](_0x38c984[_0x8d4840(0x2f9)], "s") &&
-            (_0x38c984[_0x8d4840(0x1bc) + _0x8d4840(0x305)](),
-              _0x5205d8[_0x8d4840(0x15f)](saveTasks));
-        },
-      ),
-      _0x5205d8[_0x1debdf(0x164)](initializePage));
-  },
-);
-function _0x1cb6() {
-  const _0x5ecb94 = [
-    "Enter\x20CONF",
-    "\x27\x20not\x20foun",
-    "l-align:\x20m",
-    "iSfgf",
-    "UsRjE",
-    "/save-toDo",
-    "lhEgF",
-    "foldCurren",
-    "childNodes",
-    "xemLS",
-    "OthDs",
-    "Ersyf",
-    "tPKAg",
-    "ose,\x20Task,",
-    "unfoldCurr",
-    "CKBzO",
-    "parse",
-    "ata,\x20in_pr",
-    "Copy\x20error",
-    "Save\x20API\x20r",
-    "zoYiv",
-    "0|1|4|5|2|",
-    "JcUKY",
-    "EcDCO",
-    "hidden-con",
-    "<span\x20clas",
-    "JPngO",
-    "ntered,\x20se",
-    "etween\x20ali",
-    "dVcFM",
-    "map",
-    "n\x20style=\x22v",
-    "ne-danger",
-    "ktRnv",
-    "-content-b",
-    "Invalid\x20re",
-    "All\x20In\x20Pro",
-    "vity",
-    "unoKQ",
-    "\x20obtained.",
-    "\x20small\x20scr",
-    "19222668ICELIi",
-    "qJwNy",
-    "NNHup",
-    "note_data",
-    "hfTVu",
-    "ZjczN",
-    "s:\x20",
-    "\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20",
-    "OdFZd",
-    "TDnPh",
-    "SlVfs",
-    "WEsUW",
-    "XlZAc",
-    "Element\x20wi",
-    "XWQZS",
-    "dkoLa",
-    "round-clas",
-    "led:",
-    "json",
-    "Login\x20erro",
-    "gJdwS",
-    "INPUT",
-    "remove",
-    "\x20\x20\x20\x20alt=\x22V",
-    "ror",
-    "BlRHY",
-    "save\x20tasks",
-    "ggvG$",
-    "ogress_dat",
-    "\x20Timing",
-    ":\x20768px)",
-    "WYUAw",
-    "kZRtO",
-    "View",
-    "ne-success",
-    "nvalid\x20dat",
-    "yLLbA",
-    "\x22></span>",
-    "jxgNo",
-    "gn-items-c",
-    "createElem",
-    "NyxwF",
-    "goqGz",
-    "preventDef",
-    "lhoZn",
-    "Enter",
-    "lgQEF",
-    "Complete",
-    "5GYotYA",
-    "onclick",
-    "tyOZL",
-    "YchiO",
-    "\x200.4em;\x22>\x0a",
-    "/get-toDoN",
-    "pHxEp",
-    "UUJmw",
-    "monokai",
-    "yKYHK",
-    "hasFocus",
-    "keyMap",
-    "PEIiG",
-    "iTWKa",
-    "nCtmI",
-    "gdFZP",
-    "Bearer\x20",
-    "keydown",
-    "isConfirme",
-    "HgtdY",
-    "\x20commas",
-    "sks",
-    "iddle;\x20mar",
-    "line",
-    "nnytseng.c",
-    "esXOy",
-    "g\x20src=\x22htt",
-    "FrbqJ",
-    "writeText",
-    "message",
-    "Unknown\x20er",
-    "a\x20structur",
-    "log",
-    "\x0a\x20\x20\x20\x20\x20\x20<im",
-    "owYTN",
-    "sUDkT",
-    "\x20again!",
-    "Add",
-    "prepend",
-    "RGLff",
-    "fluid\x20p-0",
-    "tijud",
-    "ZrFVV",
-    "button",
-    "finally",
-    "xQtHP",
-    "ken.",
-    "Kymrp",
-    "VrhHW",
-    "OktwH",
-    "YvoyV",
-    "oOJCM",
-    "lVRKy",
-    "normal",
-    "Error\x20savi",
-    "Sdbep",
-    "s-list",
-    "XgGtq",
-    "\x20Access\x20To",
-    "or:\x20",
-    "NvGDX",
-    "access",
-    "API\x20reques",
-    "EPwMX",
-    "INOJL",
-    "/login/",
-    "Incorrect\x20",
-    "Cancel",
-    "UpOxk",
-    "KPHas",
-    "Login\x20succ",
-    "vtqKE",
-    "#3085d6",
-    "2494962uIDXMq",
-    "Dltav",
-    "sfVWS",
-    "\x22\x20\x0a\x20\x20\x20\x20\x20\x20\x20",
-    "note-conta",
-    "Access\x20Tok",
-    "Confirm",
-    "sponse\x20str",
-    "item",
-    "success",
-    "tion\x20faile",
-    "WFcWN",
-    "ROIaA",
-    "<Esc>",
-    "gqmcI",
-    "matches",
-    "DOMContent",
-    "Invalid\x20ta",
-    "WErSN",
-    "kVwBZ",
-    "WVKdE",
-    "in-progres",
-    "applicatio",
-    "SgXnV",
-    "error",
-    "RGAuZ",
-    "ent",
-    "ctsiS",
-    "th\x20ID\x20\x27",
-    "rogress\x20ta",
-    "forEach",
-    "getElement",
-    "OhbGq",
-    "\x20to\x20obtain",
-    "sunny",
-    "1098369wRscQp",
-    "text",
-    "todo-list",
-    "PvIBZ",
-    "tor",
-    "-linenumbe",
-    "YvxCe",
-    "pedia/comm",
-    "DmQdJ",
-    "n/json",
-    "Vim",
-    "ype\x20CONFIR",
-    "timing",
-    "enter",
-    "foldCode",
-    "getOption",
-    "Text\x20copie",
-    "PeXAG",
-    "mFQJA",
-    "#d33",
-    "tWWaJ",
-    "#ff9800",
-    "matchMedia",
-    "UHGZE",
-    "object",
-    "OoIvq",
-    "stener",
-    "VqoKB",
-    "insertMode",
-    "r\x20all\x20In\x20P",
-    "yZoJx",
-    "todo_data",
-    "SGqbj",
-    "\x20[\x20",
-    "mapCommand",
-    "imlogo.svg",
-    "ons/9/9f/V",
-    "ytBaK",
-    "password",
-    "ing\x20to\x20re-",
-    "eived",
-    "goal",
-    "d,\x20attempt",
-    "-foldgutte",
-    "Clear",
-    "swHWP",
-    "\x20and\x20notes",
-    "a.org/wiki",
-    "HjFHI",
-    "bNHYA",
-    "todo-conta",
-    "unfold",
-    "QruEV",
-    "UAJIq",
-    "add-task",
-    "XZiEC",
-    "Mlzvz",
-    "PfJvm",
-    "todo",
-    "RM\x20to\x20clea",
-    "then",
-    "oPrxY",
-    "RCXGc",
-    "YakeI",
-    "GZYaZ",
-    "rogress",
-    "showValida",
-    "foldAll",
-    "s=\x22spinner",
-    "Network\x20re",
-    "Add\x20Task",
-    "s\x20have\x20bee",
-    "ertical-al",
-    "TURTr",
-    "nUAgX",
-    "\x20]\x20",
-    "Save\x20Faile",
-    "note",
-    "length",
-    "Cleared",
-    "wdSRW",
-    "wYCCd",
-    "EsWLR",
-    "jiurV",
-    "hing\x20tasks",
-    "ucture:\x20Mi",
-    "KfbKR",
-    "sponse\x20err",
-    "cIffi",
-    "ubVaE",
-    "\x20style=\x22he",
-    "addEventLi",
-    "SQCrF",
-    "children",
-    "value",
-    "CzldC",
-    "To-Do\x20List",
-    "etNKD",
-    "GOSKS",
-    "body",
-    "pIxDk",
-    "zorcO",
-    "defineActi",
-    "FXseY",
-    "RNkXZ",
-    "dblclick",
-    "https://su",
-    "ure\x20four\x20i",
-    "warn",
-    "RKwtw",
-    "iVQVx",
-    "AKgFt",
-    "none",
-    "Pos",
-    "t\x20failed:",
-    "removeEven",
-    "DBEgx",
-    "-item\x20d-fl",
-    "YIczi",
-    "Naagm",
-    "QEmwS",
-    "ired\x20field",
-    "EODwG",
-    "taskData",
-    "oyOAw",
-    "en\x20not\x20rec",
-    "e;\x22>Notebo",
-    "NzLCG",
-    "ight:\x201.2e",
-    "tListener",
-    "trim",
-    "focus",
-    "ver",
-    "ZYYpG",
-    "Jpgmw",
-    "VZlSZ",
-    "e\x20from\x20ser",
-    "Goal,\x20Purp",
-    "RZAuc",
-    "d.wikimedi",
-    "JImcP",
-    "Login\x20requ",
-    "scrollInto",
-    "ctrlKey",
-    "ById",
-    "UMAyX",
-    "xfDPl",
-    "div",
-    "purpose",
-    "container-",
-    "Please\x20ens",
-    "abs",
-    "qJaXo",
-    "display",
-    "Received\x20i",
-    "RlyJQ",
-    "ZHEXG",
-    "list-group",
-    "save-tasks",
-    "re:",
-    "ssing\x20requ",
-    "ntent",
-    "btn\x20btn-sm",
-    "eqhdi",
-    "fire",
-    "Cvktf",
-    "Authentica",
-    "isabled\x20on",
-    "yQIiG",
-    "Login\x20fail",
-    "RDJhl",
-    "shared",
-    "UTcvY",
-    "20MMVoEK",
-    "ign:\x20middl",
-    "CdSVN",
-    "QWBog",
-    "n\x20removed.",
-    "GtPsN",
-    "refresh",
-    "handleKey",
-    "GadKY",
-    "XilyM",
-    "0|2|4|1|3",
-    "er\x20passwor",
-    "(min-width",
-    "style",
-    "blue-backg",
-    "DMXCg",
-    "open",
-    "IRM",
-    "ta\x20structu",
-    "appendChil",
-    "7934224OcClAy",
-    "LpTfP",
-    "cpDQa",
-    "HIslf",
-    "ps://uploa",
-    "dZwSZ",
-    "rXDsj",
-    "te\x20mt-2",
-    "4|3|0|2|1",
-    "text-cente",
-    "s_data",
-    "key",
-    "split",
-    "ta,\x20todo_d",
-    "5271304gJPuFq",
-    "NvXtY",
-    "om/api",
-    "aKkFl",
-    "click",
-    "XIiDq",
-    "gress\x20task",
-    "2uJQLoW",
-    "unfoldAll",
-    "ault",
-    "tagName",
-    "r\x20text-whi",
-    "password,\x20",
-    "state",
-    "cursorActi",
-    "dvxBz",
-    "equest\x20fai",
-    "CptRR",
-    "fetch\x20task",
-    "FJOGZ",
-    "ex\x20justify",
-    "yIfJV",
-    "CodeMirror",
-    "ditable",
-    "gIObS",
-    "classList",
-    "getValue",
-    "editor",
-    "Edit\x20Task",
-    "EIAYx",
-    "s\x20(note_da",
-    "pgRef",
-    "m;\x20vertica",
-    "ZZDYp",
-    "GET",
-    "please\x20try",
-    "isContentE",
-    "Qfoyd",
-    "block",
-    "Notes/",
-    "JxzhH",
-    "Please\x20ent",
-    "GJliu",
-    "tems\x20are\x20e",
-    "You\x20must\x20t",
-    "ETFyZ",
-    "JGTNq",
-    "textConten",
-    "M\x20to\x20proce",
-    "kfbSh",
-    "oSxnH",
-    "WAMWa",
-    "Error\x20fetc",
-    "stringify",
-    "ror\x20occurr",
-    "status",
-    "yVlWw",
-    "ovakK",
-    "eens.",
-    "MttHU",
-    "Grnnc",
-    "isComposin",
-    "ed:\x20",
-    "markdown",
-    "iner",
-    "innerHTML",
-    "FgPnT",
-    "pHVtM",
-    "getCursor",
-    "lrHDM",
-    "Aqdmn",
-    "MgLKI",
-    "xiJdB",
-    "ALAII",
-    "UEnUH",
-    "from",
-    "crVgx",
-    "vVTNn",
-    "JOCGb",
-    "\x20\x20\x20\x20\x20\x20<spa",
-    "tionMessag",
-    "QXXCA",
-    "ed.",
-    "eGfYl",
-    "THoof",
-    "sLOQz",
-    "getSelecti",
-    "pTDrg",
-    "Save",
-    "clipboard",
-    "pWzQF",
-    "KRVIi",
-    "ANnLz",
-    "catch",
-    "dataset",
-    "Invalid\x20da",
-    "CONFIRM",
-    "HpEmC",
-    "OfDVy",
-    "est\x20failed",
-    "paVFk",
-    "er\x20task\x20co",
-    "RviRB",
-    "0|1|2|4|3",
-    "rBDJE",
-    "Sortable\x20d",
-    "in_progres",
-    "setValue",
-    "querySelec",
-    "Type\x20CONFI",
-    "Loaded",
-    "Login",
-    "parated\x20by",
-    "Notebook",
-    "insert",
-    "main-conte",
-    "KDvXB",
-    "\x20btn-outli",
-    "nvILU",
-    "ok</span>\x0a",
-    "trWpI",
-    "cess\x20Token",
-    "clear-in-p",
-    "lineCount",
-    "GzDaU",
-    "className",
-    "sk\x20data:",
-    "gin-right:",
-    "operation",
-    "3520489qMUNOg",
-    "Unable\x20to\x20",
-    "YfbgM",
-    "xDdFW",
-    "XGqzC",
-    "otes/",
-    "yNRpb",
-    "ed,\x20unable",
-    "activeElem",
-    "im\x20Logo\x22\x20\x0a",
-    "\x20\x20\x20\x20",
-    "POST",
-    "ng\x20tasks:",
-    "SDVmO",
-    "740694YlSapV",
-    "action",
-    "HEjKw",
-    "FgwJA",
-    "Tab",
-    "VTEwU",
-    "Error",
-    "tent",
-    "In\x20Progres",
-    "TEXTAREA",
-    "vim",
-    "login.",
-    "umBjV",
-    "QHAga",
-    "essful,\x20Ac",
-    "KwQtH",
-    "main-title",
-    "IHaoY",
-    "PCcuf",
-    "xOaxt",
-    "s\x20and\x20note",
-  ];
-  _0x1cb6 = function() {
-    return _0x5ecb94;
-  };
-  return _0x1cb6();
-}
-function initializePage() {
-  const _0x4c2a47 = _0x424f06,
-    _0x56ba8a = {
-      ktRnv: _0x4c2a47(0x17d) + "3",
-      RGLff: _0x4c2a47(0x300),
-      Mlzvz: function(_0x4b8043) {
-        return _0x4b8043();
-      },
-    },
-    _0x52748e = _0x56ba8a[_0x4c2a47(0x189)][_0x4c2a47(0x2fa)]("|");
-  let _0x46d6f1 = 0x2360 + -0x1 * 0x14f1 + -0xe6f;
-  while (!![]) {
-    switch (_0x52748e[_0x46d6f1++]) {
-      case "0":
-        saveButton[_0x4c2a47(0x288) + _0x4c2a47(0x247)](
-          _0x56ba8a[_0x4c2a47(0x1e8)],
-          saveTasks,
-        );
-        continue;
-      case "1":
-        addTaskButton[_0x4c2a47(0x288) + _0x4c2a47(0x247)](
-          _0x56ba8a[_0x4c2a47(0x1e8)],
-          addTask,
-        );
-        continue;
-      case "2":
-        _0x56ba8a[_0x4c2a47(0x265)](fetchTasks);
-        continue;
-      case "3":
-        _0x56ba8a[_0x4c2a47(0x265)](initializeSortable);
-        continue;
-      case "4":
-        clearInProgressButton[_0x4c2a47(0x288) + _0x4c2a47(0x247)](
-          _0x56ba8a[_0x4c2a47(0x1e8)],
-          clearInProgress,
-        );
-        continue;
-      case "5":
-        noteButton[_0x4c2a47(0x288) + _0x4c2a47(0x247)](
-          _0x56ba8a[_0x4c2a47(0x1e8)],
-          toggleNote,
-        );
-        continue;
-    }
-    break;
-  }
-}
-function showTodoView() {
-  const _0x10cdd1 = _0x424f06,
-    _0x471924 = {
-      ROIaA: _0x10cdd1(0x322),
-      NvXtY: _0x10cdd1(0x28d),
-      nCtmI: _0x10cdd1(0x29d),
-      xiJdB: _0x10cdd1(0x135),
-    };
-  ((todoContainer[_0x10cdd1(0x2e7)][_0x10cdd1(0x2c6)] =
-    _0x471924[_0x10cdd1(0x216)]),
-    (mainTitle[_0x10cdd1(0x32b) + "t"] = _0x471924[_0x10cdd1(0x2fd)]));
-  if (noteContainer)
-    noteContainer[_0x10cdd1(0x2e7)][_0x10cdd1(0x2c6)] =
-      _0x471924[_0x10cdd1(0x1cf)];
-  noteButton[_0x10cdd1(0x32b) + "t"] = _0x471924[_0x10cdd1(0x10c)];
-}
-function fetchTasks() {
-  const _0x44496f = _0x424f06,
-    _0x3f533f = {
-      jxgNo: function(_0x126e1f, _0x3c2327) {
-        return _0x126e1f === _0x3c2327;
-      },
-      UsRjE: _0x44496f(0x245),
-      FXseY: function(_0x2a537f, _0x54f8a1) {
-        return _0x2a537f !== _0x54f8a1;
-      },
-      ZYYpG: function(_0x58de27, _0x1b57f6) {
-        return _0x58de27 !== _0x1b57f6;
-      },
-      CptRR: function(_0x48731c, _0x4414a4, _0x4815e2) {
-        return _0x48731c(_0x4414a4, _0x4815e2);
-      },
-      EODwG: _0x44496f(0x22f),
-      Sdbep: _0x44496f(0x21f) + _0x44496f(0x1f9),
-      ZZDYp: function(_0xc63c00, _0x29d69d) {
-        return _0xc63c00(_0x29d69d);
-      },
-      goqGz: _0x44496f(0x2f6),
-      JGTNq: function(_0xa8defd, _0x3a24e9, _0x7a9a3d) {
-        return _0xa8defd(_0x3a24e9, _0x7a9a3d);
-      },
-      HjFHI: _0x44496f(0x159),
-      iVQVx:
-        _0x44496f(0x2c7) +
-        _0x44496f(0x1b4) +
-        _0x44496f(0x1e0) +
-        _0x44496f(0x2b5) +
-        _0x44496f(0x2b1),
-      KwQtH: _0x44496f(0x123) + _0x44496f(0x2ec) + _0x44496f(0x2cc),
-      xOaxt: _0x44496f(0x12b),
-      WErSN: _0x44496f(0x330) + _0x44496f(0x281) + ":",
-      NNHup: function(_0x5deaec, _0x34f17d, _0x43b9f7) {
-        return _0x5deaec(_0x34f17d, _0x43b9f7);
-      },
-      XgGtq: function(_0x100cd6, _0x2b9c3c) {
-        return _0x100cd6 + _0x2b9c3c;
-      },
-      Grnnc:
-        _0x44496f(0x146) +
-        _0x44496f(0x30e) +
-        _0x44496f(0x167) +
-        _0x44496f(0x197),
-      swHWP: function(_0x3bbc3a) {
-        return _0x3bbc3a();
-      },
-    };
-  _0x3f533f[_0x44496f(0x25a)](fetchTasksFromAPI)
-  [_0x44496f(0x269)]((_0x4926c5) => {
-    const _0x53a53c = _0x44496f;
-    if (
-      _0x4926c5 &&
-      _0x3f533f[_0x53a53c(0x1b7)](
-        typeof _0x4926c5,
-        _0x3f533f[_0x53a53c(0x16c)],
-      ) &&
-      _0x3f533f[_0x53a53c(0x294)](_0x4926c5[_0x53a53c(0x194)], undefined) &&
-      _0x3f533f[_0x53a53c(0x294)](_0x4926c5[_0x53a53c(0x24c)], undefined) &&
-      _0x3f533f[_0x53a53c(0x2b2)](
-        _0x4926c5[_0x53a53c(0x12e) + _0x53a53c(0x2f8)],
-        undefined,
-      )
-    )
-      (_0x3f533f[_0x53a53c(0x30d)](
-        renderTasks,
-        _0x4926c5[_0x53a53c(0x24c)],
-        _0x3f533f[_0x53a53c(0x2a7)],
-      ),
-        _0x3f533f[_0x53a53c(0x30d)](
-          renderTasks,
-          _0x4926c5[_0x53a53c(0x12e) + _0x53a53c(0x2f8)],
-          _0x3f533f[_0x53a53c(0x1f8)],
-        ),
-        _0x3f533f[_0x53a53c(0x31d)](
-          updateNoteContent,
-          _0x4926c5[_0x53a53c(0x194)],
-        ));
-    else {
-      const _0x4f5793 = _0x3f533f[_0x53a53c(0x1bb)][_0x53a53c(0x2fa)]("|");
-      let _0x635fa8 = 0x55d * 0x6 + -0xcf0 + 0x335 * -0x6;
-      while (!![]) {
-        switch (_0x4f5793[_0x635fa8++]) {
-          case "0":
-            _0x3f533f[_0x53a53c(0x30d)](
-              renderTasks,
-              [],
-              _0x3f533f[_0x53a53c(0x2a7)],
-            );
-            continue;
-          case "1":
-            _0x3f533f[_0x53a53c(0x31d)](updateNoteContent, "");
-            continue;
-          case "2":
-            _0x3f533f[_0x53a53c(0x32a)](
-              renderTasks,
-              [],
-              _0x3f533f[_0x53a53c(0x1f8)],
-            );
-            continue;
-          case "3":
-            _0x3f533f[_0x53a53c(0x32a)](
-              showErrorMessage,
-              _0x3f533f[_0x53a53c(0x25d)],
-              _0x3f533f[_0x53a53c(0x29b)],
-            );
-            continue;
-          case "4":
-            console[_0x53a53c(0x222)](_0x3f533f[_0x53a53c(0x162)], _0x4926c5);
-            continue;
-        }
-        break;
-      }
-    }
-  })
-  [_0x44496f(0x121)]((_0x37b524) => {
-    const _0x12c739 = _0x44496f,
-      _0x3edc35 = _0x3f533f[_0x12c739(0x166)][_0x12c739(0x2fa)]("|");
-    let _0x29eb61 = 0x1333 * 0x2 + 0x1fdf + 0x4645 * -0x1;
-    while (!![]) {
-      switch (_0x3edc35[_0x29eb61++]) {
-        case "0":
-          console[_0x12c739(0x222)](_0x3f533f[_0x12c739(0x21c)], _0x37b524);
-          continue;
-        case "1":
-          _0x3f533f[_0x12c739(0x193)](
-            showErrorMessage,
-            _0x3f533f[_0x12c739(0x25d)],
-            _0x3f533f[_0x12c739(0x1fa)](
-              _0x3f533f[_0x12c739(0x338)],
-              _0x37b524[_0x12c739(0x1de)],
-            ),
-          );
-          continue;
-        case "2":
-          _0x3f533f[_0x12c739(0x32a)](
-            renderTasks,
-            [],
-            _0x3f533f[_0x12c739(0x2a7)],
-          );
-          continue;
-        case "3":
-          _0x3f533f[_0x12c739(0x31d)](updateNoteContent, "");
-          continue;
-        case "4":
-          _0x3f533f[_0x12c739(0x30d)](
-            renderTasks,
-            [],
-            _0x3f533f[_0x12c739(0x1f8)],
-          );
-          continue;
-      }
-      break;
-    }
+  const loginData = { username: "sunny", password: "open" };
+  let response = await fetch(`${API_BASE_URL}/login/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(loginData),
   });
+  let data = await response.json();
+  TOKEN = data.access;
 }
-function renderTasks(_0x270f21, _0x2fcfa2) {
-  const _0x3e4e94 = _0x424f06,
-    _0x218c0a = {
-      YfbgM: function(_0xe655f9, _0x5aa45c) {
-        return _0xe655f9 !== _0x5aa45c;
-      },
-      pHxEp: function(_0x27f046, _0x19741b) {
-        return _0x27f046 !== _0x19741b;
-      },
-      tyOZL: function(_0x668450, _0x2102b6) {
-        return _0x668450 !== _0x2102b6;
-      },
-      Naagm: function(_0x508115, _0x2cd224, _0x4aaffe) {
-        return _0x508115(_0x2cd224, _0x4aaffe);
-      },
-      UEnUH: function(_0x464378, _0x7392b7) {
-        return _0x464378 === _0x7392b7;
-      },
-      ANnLz: _0x3e4e94(0x21f) + _0x3e4e94(0x1f9),
-      WEsUW: _0x3e4e94(0x21b) + _0x3e4e94(0x142),
+
+// Fetch task data from backend
+async function fetchTasksFromAPI() {
+  if (!TOKEN) await login_and_get_token();
+  let response = await fetch(`${API_BASE_URL}/get-toDoNotes/`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+  if (response.status === 401) {
+    await login_and_get_token();
+    response = await fetch(`${API_BASE_URL}/get-toDoNotes/`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
+  }
+  return response.json();
+}
+
+// Save frontend task/note data to backend
+async function saveTasksToAPI(data) {
+  if (!TOKEN) await login_and_get_token();
+  let response = await fetch(`${API_BASE_URL}/save-toDoNotes/`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
     },
-    _0xdde04 = document[_0x3e4e94(0x229) + _0x3e4e94(0x2bd)](_0x2fcfa2);
-  if (!_0xdde04) {
-    console[_0x3e4e94(0x222)](
-      _0x3e4e94(0x19e) +
-      _0x3e4e94(0x226) +
-      _0x2fcfa2 +
-      (_0x3e4e94(0x169) + "d"),
-    );
+    body: JSON.stringify(data),
+  });
+  if (response.status === 401) {
+    await login_and_get_token();
+    response = await fetch(`${API_BASE_URL}/save-toDoNotes/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  }
+  return response.json();
+}
+
+/********************************************/
+/* 2) Frontend Interface and Event Logic (Integrated with API) */
+/********************************************/
+const todoContainer = document.getElementById("todo-container");
+const mainTitle = document.getElementById("main-title");
+const mainContent = document.getElementById("main-content");
+const noteButton = document.getElementById("note");
+const saveButton = document.getElementById("save-tasks");
+const addTaskButton = document.getElementById("add-task");
+const clearInProgressButton = document.getElementById("clear-in-progress");
+let noteContainer = null;
+let noteEditor = null;
+
+const debouncedSaveTasks = debounce(saveTasks, 500);
+
+document.addEventListener("DOMContentLoaded", async function () {
+  if (sessionStorage.getItem("logged_in") === "true") {
+    document.body.classList.remove("hidden-content");
+    initializePage();
     return;
   }
-  ((_0xdde04[_0x3e4e94(0x105)] = ""),
-    _0x270f21[_0x3e4e94(0x228)]((_0x3132fe) => {
-      const _0x52f080 = _0x3e4e94;
+
+  Swal.fire({
+    title: "Login",
+    input: "password",
+    inputPlaceholder: "Please enter password",
+    showCancelButton: false,
+    confirmButtonText: "Confirm",
+    confirmButtonColor: "#ff9800",
+    allowOutsideClick: false,
+    preConfirm: async (password) => {
+      if (!password) {
+        Swal.showValidationMessage("Incorrect password, please try again!");
+        return false;
+      }
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      if (hashHex !== PASSWORD_HASH) {
+        Swal.showValidationMessage("Incorrect password, please try again!");
+        return false;
+      }
+      sessionStorage.setItem("logged_in", "true");
+      return true;
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.body.classList.remove("hidden-content");
+      initializePage();
+    }
+  });
+
+  addTaskButton.focus();
+  document.addEventListener("keydown", enterKeyListener);
+  document.addEventListener("keydown", tabKeyListener);
+
+  document.addEventListener("keydown", function (event) {
+    if (event.ctrlKey && event.key === "s") {
+      event.preventDefault();
+      saveTasks();
+    }
+  });
+});
+
+function initializePage() {
+  saveButton.addEventListener("click", saveTasks);
+  addTaskButton.addEventListener("click", addTask);
+  clearInProgressButton.addEventListener("click", clearInProgress);
+  noteButton.addEventListener("click", toggleNote);
+  fetchTasks();
+  initializeSortable();
+}
+
+function showTodoView() {
+  todoContainer.style.display = "block";
+  mainTitle.textContent = "To-Do List";
+  if (noteContainer) noteContainer.style.display = "none";
+  noteButton.textContent = "Notebook";
+}
+
+// Fetch tasks
+function fetchTasks() {
+  fetchTasksFromAPI()
+    .then((data) => {
+      // console.log("Processed data:", JSON.stringify(data, null, 2)); // Debug
+      // Validate data structure
       if (
-        _0x218c0a[_0x52f080(0x147)](_0x3132fe[_0x52f080(0x256)], undefined) &&
-        _0x218c0a[_0x52f080(0x1c7)](_0x3132fe[_0x52f080(0x2c1)], undefined) &&
-        _0x218c0a[_0x52f080(0x1c7)](_0x3132fe[_0x52f080(0x267)], undefined) &&
-        _0x218c0a[_0x52f080(0x1c3)](_0x3132fe[_0x52f080(0x239)], undefined)
+        data &&
+        typeof data === "object" &&
+        data.note_data !== undefined &&
+        data.todo_data !== undefined &&
+        data.in_progress_data !== undefined
       ) {
-        const _0x185645 = _0x218c0a[_0x52f080(0x2a4)](
-          createTaskElement,
-          _0x3132fe,
-          _0x218c0a[_0x52f080(0x10e)](_0x2fcfa2, _0x218c0a[_0x52f080(0x120)]),
+        renderTasks(data.todo_data, "todo-list");
+        renderTasks(data.in_progress_data, "in-progress-list");
+        updateNoteContent(data.note_data);
+      } else {
+        console.error("Invalid data structure:", data);
+        showErrorMessage(
+          "Error",
+          "Received invalid data structure from server",
         );
-        _0xdde04[_0x52f080(0x2ed) + "d"](_0x185645);
-      } else console[_0x52f080(0x299)](_0x218c0a[_0x52f080(0x19c)], _0x3132fe);
-    }));
-}
-function _0x7801(_0x29cceb, _0x5e9e3b) {
-  _0x29cceb = _0x29cceb - (-0x1f69 + 0x119a + 0xed0);
-  const _0x527b55 = _0x1cb6();
-  let _0x1bcb26 = _0x527b55[_0x29cceb];
-  return _0x1bcb26;
-}
-function createTaskElement(_0x5b851e, _0x5039ce) {
-  const _0x31b026 = _0x424f06,
-    _0x478dea = {
-      JPngO: function(_0x50bf3f, _0x2948aa) {
-        return _0x50bf3f(_0x2948aa);
-      },
-      gJdwS:
-        _0x31b026(0x2ca) +
-        _0x31b026(0x2a2) +
-        _0x31b026(0x310) +
-        _0x31b026(0x18a) +
-        _0x31b026(0x184) +
-        _0x31b026(0x1b8) +
-        _0x31b026(0x23a),
-      aKkFl: _0x31b026(0x296),
-      HIslf: _0x31b026(0x1ec),
-      NvGDX: _0x31b026(0x2cf) + _0x31b026(0x139) + _0x31b026(0x188),
-      yIfJV: _0x31b026(0x2cf) + _0x31b026(0x139) + _0x31b026(0x1b3),
-      GzDaU: _0x31b026(0x1c0),
-      tPKAg: _0x31b026(0x15b) + "s",
-      pIxDk: _0x31b026(0x300),
-    },
-    _0x233061 = document[_0x31b026(0x1b9) + _0x31b026(0x224)]("li");
-  _0x233061[_0x31b026(0x141)] = _0x478dea[_0x31b026(0x1a5)];
-  const _0x564e35 =
-    _0x5b851e[_0x31b026(0x256)] +
-    "\x20" +
-    _0x5b851e[_0x31b026(0x2c1)] +
-    _0x31b026(0x24e) +
-    _0x5b851e[_0x31b026(0x267)] +
-    _0x31b026(0x278) +
-    _0x5b851e[_0x31b026(0x239)];
-  ((_0x233061[_0x31b026(0x32b) + "t"] = _0x564e35),
-    (_0x233061[_0x31b026(0x122)][_0x31b026(0x2a8)] =
-      JSON[_0x31b026(0x331)](_0x5b851e)),
-    _0x233061[_0x31b026(0x288) + _0x31b026(0x247)](
-      _0x478dea[_0x31b026(0x2ff)],
-      () => editTask(_0x233061),
-    ));
-  const _0x499411 = document[_0x31b026(0x1b9) + _0x31b026(0x224)](
-    _0x478dea[_0x31b026(0x2f1)],
-  );
-  return (
-    (_0x499411[_0x31b026(0x141)] = _0x5039ce
-      ? _0x478dea[_0x31b026(0x1fd)]
-      : _0x478dea[_0x31b026(0x311)]),
-    (_0x499411[_0x31b026(0x32b) + "t"] = _0x5039ce
-      ? _0x478dea[_0x31b026(0x140)]
-      : _0x478dea[_0x31b026(0x174)]),
-    _0x499411[_0x31b026(0x288) + _0x31b026(0x247)](
-      _0x478dea[_0x31b026(0x291)],
-      () => {
-        const _0x386a59 = _0x31b026;
-        _0x5039ce
-          ? _0x478dea[_0x386a59(0x182)](removeFromInProgress, _0x233061)
-          : _0x478dea[_0x386a59(0x182)](moveToInProgress, _0x233061);
-      },
-    ),
-    _0x233061[_0x31b026(0x2ed) + "d"](_0x499411),
-    _0x233061
-  );
-}
-function moveToInProgress(_0x3bd3aa) {
-  const _0x4b8cee = _0x424f06,
-    _0x2103e5 = {
-      JcUKY: _0x4b8cee(0x21f) + _0x4b8cee(0x1f9),
-      lhoZn: _0x4b8cee(0x1ec),
-      YvoyV: _0x4b8cee(0x2cf) + _0x4b8cee(0x139) + _0x4b8cee(0x188),
-      tWWaJ: _0x4b8cee(0x1c0),
-      CzldC: function(_0x160a03) {
-        return _0x160a03();
-      },
-    },
-    _0xa8db27 = document[_0x4b8cee(0x229) + _0x4b8cee(0x2bd)](
-      _0x2103e5[_0x4b8cee(0x17e)],
-    );
-  _0xa8db27[_0x4b8cee(0x1e7)](_0x3bd3aa);
-  const _0x44173f = _0x3bd3aa[_0x4b8cee(0x130) + _0x4b8cee(0x231)](
-    _0x2103e5[_0x4b8cee(0x1bd)],
-  );
-  ((_0x44173f[_0x4b8cee(0x141)] = _0x2103e5[_0x4b8cee(0x1f3)]),
-    (_0x44173f[_0x4b8cee(0x32b) + "t"] = _0x2103e5[_0x4b8cee(0x241)]),
-    (_0x44173f[_0x4b8cee(0x1c2)] = () => removeFromInProgress(_0x3bd3aa)),
-    _0x2103e5[_0x4b8cee(0x28c)](debouncedSaveTasks));
-}
-function removeFromInProgress(_0x537a25) {
-  const _0x3ff193 = _0x424f06,
-    _0x75c3de = {
-      kZRtO: function(_0x13b5cf) {
-        return _0x13b5cf();
-      },
-    };
-  (_0x537a25[_0x3ff193(0x1a7)](),
-    _0x75c3de[_0x3ff193(0x1b1)](debouncedSaveTasks));
-}
-function saveTasks() {
-  const _0x587742 = _0x424f06,
-    _0x4d78fb = {
-      THoof: function(_0x29e65c, _0x4816e1, _0x432c63) {
-        return _0x29e65c(_0x4816e1, _0x432c63);
-      },
-      yVlWw: _0x587742(0x279) + "d",
-      OfDVy: function(_0x3e3cd7, _0x46c63a) {
-        return _0x3e3cd7 + _0x46c63a;
-      },
-      PvIBZ: _0x587742(0x146) + _0x587742(0x1ab) + _0x587742(0x25b) + ":\x20",
-      Aqdmn: _0x587742(0x1df) + _0x587742(0x1a9),
-      QruEV: function(_0x21512d, _0x1ac16c, _0x17b89f) {
-        return _0x21512d(_0x1ac16c, _0x17b89f);
-      },
-      XZiEC: _0x587742(0x159),
-      mFQJA: _0x587742(0x1df) + _0x587742(0x332) + _0x587742(0x102),
-      TURTr: _0x587742(0x22f),
-      zorcO: _0x587742(0x21f) + _0x587742(0x1f9),
-      YvxCe: _0x587742(0x2cb),
-      QXXCA: _0x587742(0x181) + _0x587742(0x271) + _0x587742(0x1b6),
-      ZrFVV: function(_0x3b72e9, _0x396ea3) {
-        return _0x3b72e9(_0x396ea3);
-      },
-    },
-    _0x5e8d9d = Array[_0x587742(0x10f)](
-      document[_0x587742(0x229) + _0x587742(0x2bd)](
-        _0x4d78fb[_0x587742(0x276)],
-      )[_0x587742(0x28a)],
-    )[_0x587742(0x186)]((_0x112a2d) =>
-      JSON[_0x587742(0x178)](_0x112a2d[_0x587742(0x122)][_0x587742(0x2a8)]),
-    ),
-    _0x582483 = Array[_0x587742(0x10f)](
-      document[_0x587742(0x229) + _0x587742(0x2bd)](
-        _0x4d78fb[_0x587742(0x292)],
-      )[_0x587742(0x28a)],
-    )[_0x587742(0x186)]((_0x38e27b) =>
-      JSON[_0x587742(0x178)](_0x38e27b[_0x587742(0x122)][_0x587742(0x2a8)]),
-    ),
-    _0x45fd86 = noteEditor ? noteEditor[_0x587742(0x316)]() : "",
-    _0x4bf45f = {
-      note_data: _0x45fd86,
-      todo_data: _0x5e8d9d,
-      in_progress_data: _0x582483,
-    },
-    _0x4fc67c = document[_0x587742(0x229) + _0x587742(0x2bd)](
-      _0x4d78fb[_0x587742(0x233)],
-    ),
-    _0x221bc9 = _0x4fc67c[_0x587742(0x105)];
-  ((_0x4fc67c[_0x587742(0x105)] = _0x4d78fb[_0x587742(0x115)]),
-    _0x4d78fb[_0x587742(0x1eb)](saveTasksToAPI, _0x4bf45f)
-    [_0x587742(0x269)]((_0x21e144) => {
-      const _0x35e72f = _0x587742;
-      if (!_0x21e144[_0x35e72f(0x213)])
-        _0x4d78fb[_0x35e72f(0x118)](
-          showErrorMessage,
-          _0x4d78fb[_0x35e72f(0x334)],
-          _0x4d78fb[_0x35e72f(0x126)](
-            _0x4d78fb[_0x35e72f(0x230)],
-            _0x21e144[_0x35e72f(0x1de)] || _0x4d78fb[_0x35e72f(0x10a)],
-          ),
-        );
-      else {
+        // Use fallback data to prevent app crash
+        renderTasks([], "todo-list");
+        renderTasks([], "in-progress-list");
+        updateNoteContent("");
       }
     })
-    [_0x587742(0x121)]((_0x42e993) => {
-      const _0x1c2e17 = _0x587742;
-      _0x4d78fb[_0x1c2e17(0x261)](
-        showErrorMessage,
-        _0x4d78fb[_0x1c2e17(0x264)],
-        _0x4d78fb[_0x1c2e17(0x126)](
-          _0x4d78fb[_0x1c2e17(0x23f)],
-          _0x42e993[_0x1c2e17(0x1de)],
-        ),
+    .catch((error) => {
+      console.error("Error fetching tasks:", error);
+      showErrorMessage(
+        "Error",
+        "Unable to fetch tasks and notes: " + error.message,
       );
-    })
-    [_0x587742(0x1ed)](() => {
-      const _0x4f7cdc = _0x587742;
-      _0x4fc67c[_0x4f7cdc(0x105)] = _0x221bc9;
-    }));
+      // Use fallback data
+      renderTasks([], "todo-list");
+      renderTasks([], "in-progress-list");
+      updateNoteContent("");
+    });
 }
-function addTask() {
-  const _0x236b30 = _0x424f06,
-    _0x88589d = {
-      VZlSZ: _0x236b30(0x325) + _0x236b30(0x129) + _0x236b30(0x2ce),
-      ovakK: function(_0x372e47, _0x24da84) {
-        return _0x372e47 !== _0x24da84;
-      },
-      CdSVN:
-        _0x236b30(0x2c3) +
-        _0x236b30(0x298) +
-        _0x236b30(0x327) +
-        _0x236b30(0x183) +
-        _0x236b30(0x134) +
-        _0x236b30(0x1d5),
-      lgQEF: function(_0x5bb8ea) {
-        return _0x5bb8ea();
-      },
-      xfDPl: _0x236b30(0x22f),
-      SlVfs: function(_0x220c3c, _0x462fca, _0x54e6dd) {
-        return _0x220c3c(_0x462fca, _0x54e6dd);
-      },
-      yKYHK: _0x236b30(0x273),
-      sfVWS: _0x236b30(0x22e),
-      OoIvq: _0x236b30(0x2b6) + _0x236b30(0x175) + _0x236b30(0x1ae),
-      YakeI: _0x236b30(0x209),
-      trWpI: _0x236b30(0x1e6),
-    };
-  (_0x88589d[_0x236b30(0x1bf)](disableEnterListener),
-    Swal[_0x236b30(0x2d1)]({
-      title: _0x88589d[_0x236b30(0x1ca)],
-      input: _0x88589d[_0x236b30(0x20c)],
-      inputPlaceholder: _0x88589d[_0x236b30(0x246)],
-      showCancelButton: !![],
-      confirmButtonColor: _0x88589d[_0x236b30(0x26c)],
-      confirmButtonText: _0x88589d[_0x236b30(0x13c)],
-      inputValidator: (_0x2bec74) => {
-        const _0x47ba7e = _0x236b30;
-        if (!_0x2bec74) return _0x88589d[_0x47ba7e(0x2b4)];
-        const _0x40f7ac = _0x2bec74[_0x47ba7e(0x2fa)](",");
-        if (
-          _0x88589d[_0x47ba7e(0x335)](
-            _0x40f7ac[_0x47ba7e(0x27b)],
-            -0xc2 * 0xf + -0x76f * -0x2 + -0x37c,
-          )
-        )
-          return _0x88589d[_0x47ba7e(0x2dc)];
-      },
-    })[_0x236b30(0x269)]((_0x314a45) => {
-      const _0x4eee84 = _0x236b30;
-      _0x88589d[_0x4eee84(0x1bf)](enableEnterListener);
-      if (_0x314a45[_0x4eee84(0x28b)]) {
-        const [_0x3b6729, _0x5238e0, _0x3a1161, _0x1fd55e] =
-          _0x314a45[_0x4eee84(0x28b)][_0x4eee84(0x2fa)](","),
-          _0xa7c86b = {
-            goal: _0x3b6729[_0x4eee84(0x2af)](),
-            purpose: _0x5238e0[_0x4eee84(0x2af)](),
-            todo: _0x3a1161[_0x4eee84(0x2af)](),
-            timing: _0x1fd55e[_0x4eee84(0x2af)](),
-          },
-          _0xdae96e = document[_0x4eee84(0x229) + _0x4eee84(0x2bd)](
-            _0x88589d[_0x4eee84(0x2bf)],
-          ),
-          _0x4c25cb = _0x88589d[_0x4eee84(0x19b)](
-            createTaskElement,
-            _0xa7c86b,
-            ![],
-          );
-        (_0xdae96e[_0x4eee84(0x1e7)](_0x4c25cb),
-          _0x88589d[_0x4eee84(0x1bf)](debouncedSaveTasks));
-      }
-    }));
-}
-function editTask(_0x2c0886) {
-  const _0x53c7d7 = _0x424f06,
-    _0x225fb4 = {
-      yZoJx: _0x53c7d7(0x325) + _0x53c7d7(0x129) + _0x53c7d7(0x2ce),
-      cpDQa: function(_0x4fc8d2, _0x31fd88) {
-        return _0x4fc8d2 !== _0x31fd88;
-      },
-      Cvktf:
-        _0x53c7d7(0x2c3) +
-        _0x53c7d7(0x298) +
-        _0x53c7d7(0x327) +
-        _0x53c7d7(0x183) +
-        _0x53c7d7(0x134) +
-        _0x53c7d7(0x1d5),
-      oyOAw: function(_0x298862) {
-        return _0x298862();
-      },
-      UAJIq: function(_0xa6a2f0) {
-        return _0xa6a2f0();
-      },
-      dVcFM: _0x53c7d7(0x318),
-      JOCGb: _0x53c7d7(0x22e),
-      VqoKB: _0x53c7d7(0x2b6) + _0x53c7d7(0x175) + _0x53c7d7(0x1ae),
-      UpOxk: _0x53c7d7(0x209),
-      CKBzO: _0x53c7d7(0x11c),
-    };
-  _0x225fb4[_0x53c7d7(0x2a9)](disableEnterListener);
-  const _0x3106d1 = JSON[_0x53c7d7(0x178)](
-    _0x2c0886[_0x53c7d7(0x122)][_0x53c7d7(0x2a8)],
-  ),
-    _0x1971a7 =
-      _0x3106d1[_0x53c7d7(0x256)] +
-      ",\x20" +
-      _0x3106d1[_0x53c7d7(0x2c1)] +
-      ",\x20" +
-      _0x3106d1[_0x53c7d7(0x267)] +
-      ",\x20" +
-      _0x3106d1[_0x53c7d7(0x239)];
-  Swal[_0x53c7d7(0x2d1)]({
-    title: _0x225fb4[_0x53c7d7(0x185)],
-    input: _0x225fb4[_0x53c7d7(0x112)],
-    inputPlaceholder: _0x225fb4[_0x53c7d7(0x248)],
-    inputValue: _0x1971a7,
-    showCancelButton: !![],
-    confirmButtonColor: _0x225fb4[_0x53c7d7(0x205)],
-    confirmButtonText: _0x225fb4[_0x53c7d7(0x177)],
-    inputValidator: (_0x45e57f) => {
-      const _0x33db52 = _0x53c7d7;
-      if (!_0x45e57f) return _0x225fb4[_0x33db52(0x24b)];
-      const _0x1ff31b = _0x45e57f[_0x33db52(0x2fa)](",");
-      if (
-        _0x225fb4[_0x33db52(0x2f0)](
-          _0x1ff31b[_0x33db52(0x27b)],
-          0x20d1 * -0x1 + 0x776 + 0x195f,
-        )
-      )
-        return _0x225fb4[_0x33db52(0x2d2)];
-    },
-  })[_0x53c7d7(0x269)]((_0x57e99a) => {
-    const _0xd4a531 = _0x53c7d7;
-    _0x225fb4[_0xd4a531(0x2a9)](enableEnterListener);
-    if (_0x57e99a[_0xd4a531(0x28b)]) {
-      const [_0x5a5fbb, _0x265b54, _0x67f680, _0x4f1c4d] =
-        _0x57e99a[_0xd4a531(0x28b)][_0xd4a531(0x2fa)](","),
-        _0xd905a8 = {
-          goal: _0x5a5fbb[_0xd4a531(0x2af)](),
-          purpose: _0x265b54[_0xd4a531(0x2af)](),
-          todo: _0x67f680[_0xd4a531(0x2af)](),
-          timing: _0x4f1c4d[_0xd4a531(0x2af)](),
-        };
-      ((_0x2c0886[_0xd4a531(0x122)][_0xd4a531(0x2a8)] =
-        JSON[_0xd4a531(0x331)](_0xd905a8)),
-        (_0x2c0886[_0xd4a531(0x170)][-0x1 * -0x232b + 0x19ff + 0x2 * -0x1e95][
-          _0xd4a531(0x32b) + "t"
-        ] =
-          _0xd905a8[_0xd4a531(0x256)] +
-          "\x20" +
-          _0xd905a8[_0xd4a531(0x2c1)] +
-          _0xd4a531(0x24e) +
-          _0xd905a8[_0xd4a531(0x267)] +
-          _0xd4a531(0x278) +
-          _0xd905a8[_0xd4a531(0x239)]),
-        _0x225fb4[_0xd4a531(0x262)](debouncedSaveTasks));
+
+// Render tasks to specified UL
+function renderTasks(tasks, listId) {
+  const listElement = document.getElementById(listId);
+  if (!listElement) {
+    console.error(`Element with ID '${listId}' not found`);
+    return;
+  }
+  listElement.innerHTML = "";
+  tasks.forEach((taskData) => {
+    // Validate task data structure
+    if (
+      taskData.goal !== undefined &&
+      taskData.purpose !== undefined &&
+      taskData.todo !== undefined &&
+      taskData.timing !== undefined
+    ) {
+      const newTask = createTaskElement(
+        taskData,
+        listId === "in-progress-list",
+      );
+      listElement.appendChild(newTask);
+    } else {
+      console.warn("Invalid task data:", taskData);
     }
   });
 }
-function clearInProgress() {
-  const _0x56a216 = _0x424f06,
-    _0x102af1 = {
-      DmQdJ: function(_0x214ac5, _0x25876e) {
-        return _0x214ac5 !== _0x25876e;
-      },
-      DMXCg: _0x56a216(0x124),
-      Jpgmw:
-        _0x56a216(0x328) +
-        _0x56a216(0x238) +
-        _0x56a216(0x32c) +
-        _0x56a216(0x116),
-      kfbSh: _0x56a216(0x21f) + _0x56a216(0x1f9),
-      WVKdE: function(_0x4f99d6) {
-        return _0x4f99d6();
-      },
-      sLOQz: _0x56a216(0x213),
-      xDdFW: _0x56a216(0x27c),
-      WFcWN:
-        _0x56a216(0x18c) +
-        _0x56a216(0x302) +
-        _0x56a216(0x274) +
-        _0x56a216(0x2de),
-      RviRB:
-        _0x56a216(0x131) +
-        _0x56a216(0x268) +
-        _0x56a216(0x24a) +
-        _0x56a216(0x227) +
-        _0x56a216(0x1d6),
-      unoKQ: _0x56a216(0x22e),
-      ytBaK: _0x56a216(0x168) + _0x56a216(0x2eb),
-      bNHYA: _0x56a216(0x259),
-      JxzhH: _0x56a216(0x204),
-      sUDkT: _0x56a216(0x240),
-      KDvXB: _0x56a216(0x209),
-    };
-  Swal[_0x56a216(0x2d1)]({
-    title: _0x102af1[_0x56a216(0x12a)],
-    input: _0x102af1[_0x56a216(0x18e)],
-    inputPlaceholder: _0x102af1[_0x56a216(0x252)],
-    showCancelButton: !![],
-    confirmButtonText: _0x102af1[_0x56a216(0x25e)],
-    cancelButtonText: _0x102af1[_0x56a216(0x324)],
-    confirmButtonColor: _0x102af1[_0x56a216(0x1e4)],
-    cancelButtonColor: _0x102af1[_0x56a216(0x138)],
-    preConfirm: (_0x34a923) => {
-      const _0xf3e3a8 = _0x56a216;
-      if (_0x102af1[_0xf3e3a8(0x235)](_0x34a923, _0x102af1[_0xf3e3a8(0x2e9)]))
-        return (
-          Swal[_0xf3e3a8(0x26f) + _0xf3e3a8(0x114) + "e"](
-            _0x102af1[_0xf3e3a8(0x2b3)],
-          ),
-          ![]
+
+// Create single task <li>
+function createTaskElement(taskData, isInProgress) {
+  const newTask = document.createElement("li");
+  newTask.className =
+    "list-group-item d-flex justify-content-between align-items-center";
+  const taskText = `${taskData.goal} ${taskData.purpose} [ ${taskData.todo} ] ${taskData.timing}`;
+  newTask.textContent = taskText;
+
+  newTask.dataset.taskData = JSON.stringify(taskData);
+  newTask.addEventListener("dblclick", () => editTask(newTask));
+
+  const button = document.createElement("button");
+  button.className = isInProgress
+    ? "btn btn-sm btn-outline-danger"
+    : "btn btn-sm btn-outline-success";
+  button.textContent = isInProgress ? "Complete" : "In Progress";
+  button.addEventListener("click", () => {
+    if (isInProgress) {
+      removeFromInProgress(newTask);
+    } else {
+      moveToInProgress(newTask);
+    }
+  });
+  newTask.appendChild(button);
+
+  return newTask;
+}
+
+// Move to In Progress section
+function moveToInProgress(task) {
+  const inProgressList = document.getElementById("in-progress-list");
+  inProgressList.prepend(task);
+  const button = task.querySelector("button");
+  button.className = "btn btn-sm btn-outline-danger";
+  button.textContent = "Complete";
+  button.onclick = () => removeFromInProgress(task);
+  debouncedSaveTasks(); // Debounced save
+}
+
+// Remove from In Progress
+function removeFromInProgress(task) {
+  task.remove();
+  debouncedSaveTasks(); // Debounced save
+}
+
+// Trigger save
+function saveTasks() {
+  const todoTasks = Array.from(
+    document.getElementById("todo-list").children,
+  ).map((li) => JSON.parse(li.dataset.taskData));
+  const inProgressTasks = Array.from(
+    document.getElementById("in-progress-list").children,
+  ).map((li) => JSON.parse(li.dataset.taskData));
+  const noteText = noteEditor ? noteEditor.getValue() : "";
+
+  const data = {
+    note_data: noteText,
+    todo_data: todoTasks,
+    in_progress_data: inProgressTasks,
+  };
+
+  const saveButton = document.getElementById("save-tasks");
+  const originalHTML = saveButton.innerHTML;
+  saveButton.innerHTML = '<span class="spinner"></span>';
+
+  saveTasksToAPI(data)
+    .then((res) => {
+      if (!res.success) {
+        showErrorMessage(
+          "Save Failed",
+          "Unable to save tasks and notes: " + (res.message || "Unknown error"),
         );
-      return !![];
+      } else {
+        // showSuccessMessage('Saved', 'Tasks and notes saved successfully');
+      }
+    })
+    .catch((e) => {
+      showErrorMessage("Error", "Unknown error occurred: " + e.message);
+    })
+    .finally(() => {
+      saveButton.innerHTML = originalHTML;
+    });
+}
+
+// Add a new task (pop-up SweetAlert2 input)
+function addTask() {
+  disableEnterListener();
+
+  Swal.fire({
+    title: "Add Task",
+    input: "text",
+    inputPlaceholder: "Goal, Purpose, Task, Timing",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    confirmButtonText: "Add",
+    inputValidator: (value) => {
+      if (!value) {
+        return "Please enter task content";
+      }
+      const values = value.split(",");
+      if (values.length !== 4) {
+        return "Please ensure four items are entered, separated by commas";
+      }
     },
-  })[_0x56a216(0x269)]((_0x37308c) => {
-    const _0x363a79 = _0x56a216;
-    _0x37308c[_0x363a79(0x1d3) + "d"] &&
-      ((document[_0x363a79(0x229) + _0x363a79(0x2bd)](
-        _0x102af1[_0x363a79(0x32d)],
-      )[_0x363a79(0x105)] = ""),
-        _0x102af1[_0x363a79(0x21e)](debouncedSaveTasks),
-        Swal[_0x363a79(0x2d1)]({
-          icon: _0x102af1[_0x363a79(0x119)],
-          title: _0x102af1[_0x363a79(0x148)],
-          text: _0x102af1[_0x363a79(0x215)],
-          showConfirmButton: ![],
-          timer: 0x4b0,
-        }));
+  }).then((result) => {
+    enableEnterListener();
+
+    if (result.value) {
+      const [goal, purpose, todo, timing] = result.value.split(",");
+      const taskData = {
+        goal: goal.trim(),
+        purpose: purpose.trim(),
+        todo: todo.trim(),
+        timing: timing.trim(),
+      };
+      const todoList = document.getElementById("todo-list");
+      const newTask = createTaskElement(taskData, false);
+      todoList.prepend(newTask);
+      debouncedSaveTasks(); // Debounced save
+    }
   });
 }
+
+// Edit a single task
+function editTask(task) {
+  disableEnterListener();
+
+  const taskData = JSON.parse(task.dataset.taskData);
+  const initialValue = `${taskData.goal}, ${taskData.purpose}, ${taskData.todo}, ${taskData.timing}`;
+
+  Swal.fire({
+    title: "Edit Task",
+    input: "text",
+    inputPlaceholder: "Goal, Purpose, Task, Timing",
+    inputValue: initialValue,
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    confirmButtonText: "Save",
+    inputValidator: (value) => {
+      if (!value) {
+        return "Please enter task content";
+      }
+      const values = value.split(",");
+      if (values.length !== 4) {
+        return "Please ensure four items are entered, separated by commas";
+      }
+    },
+  }).then((result) => {
+    enableEnterListener();
+
+    if (result.value) {
+      const [goal, purpose, todo, timing] = result.value.split(",");
+      const newTaskData = {
+        goal: goal.trim(),
+        purpose: purpose.trim(),
+        todo: todo.trim(),
+        timing: timing.trim(),
+      };
+      task.dataset.taskData = JSON.stringify(newTaskData);
+      task.childNodes[0].textContent = `${newTaskData.goal} ${newTaskData.purpose} [ ${newTaskData.todo} ] ${newTaskData.timing}`;
+      debouncedSaveTasks(); // Debounced save
+    }
+  });
+}
+
+// Clear In Progress tasks
+function clearInProgress() {
+  Swal.fire({
+    title: "Type CONFIRM to clear all In Progress tasks",
+    input: "text",
+    inputPlaceholder: "Enter CONFIRM",
+    showCancelButton: true,
+    confirmButtonText: "Clear",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    preConfirm: (value) => {
+      if (value !== "CONFIRM") {
+        Swal.showValidationMessage("You must type CONFIRM to proceed.");
+        return false;
+      }
+      return true;
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.getElementById("in-progress-list").innerHTML = "";
+      debouncedSaveTasks();
+
+      Swal.fire({
+        icon: "success",
+        title: "Cleared",
+        text: "All In Progress tasks have been removed.",
+        showConfirmButton: false,
+        timer: 1200,
+      });
+    }
+  });
+}
+
+// Initialize drag-and-drop sorting
 function initializeSortable() {
-  const _0x341edc = _0x424f06,
-    _0x2269da = {
-      dZwSZ: function(_0x121d75, _0xd66c7e) {
-        return _0x121d75 === _0xd66c7e;
+  if (window.matchMedia("(min-width: 768px)").matches) {
+    new Sortable(document.getElementById("todo-list"), {
+      group: "shared",
+      animation: 150,
+      ghostClass: "blue-background-class",
+      onEnd: function(evt) {
+        if (evt.to.id === "in-progress-list") {
+          const button = evt.item.querySelector("button");
+          button.className = "btn btn-sm btn-outline-danger";
+          button.textContent = "Complete";
+          button.onclick = () => removeFromInProgress(evt.item);
+        }
+        debouncedSaveTasks(); // Debounced save
       },
-      qJaXo: _0x341edc(0x21f) + _0x341edc(0x1f9),
-      KfbKR: _0x341edc(0x1ec),
-      ALAII: _0x341edc(0x2cf) + _0x341edc(0x139) + _0x341edc(0x188),
-      nvILU: _0x341edc(0x1c0),
-      YIczi: function(_0x510d9a) {
-        return _0x510d9a();
+    });
+
+    new Sortable(document.getElementById("in-progress-list"), {
+      group: "shared",
+      animation: 150,
+      ghostClass: "blue-background-class",
+      onEnd: function(evt) {
+        if (evt.to.id === "todo-list") {
+          const button = evt.item.querySelector("button");
+          button.className = "btn btn-sm btn-outline-success";
+          button.textContent = "In Progress";
+          button.onclick = () => moveToInProgress(evt.item);
+        }
+        debouncedSaveTasks(); // Debounced save
       },
-      MgLKI: function(_0x11a875, _0x1e22ec) {
-        return _0x11a875 === _0x1e22ec;
-      },
-      FrbqJ: _0x341edc(0x22f),
-      esXOy: _0x341edc(0x2cf) + _0x341edc(0x139) + _0x341edc(0x1b3),
-      ZjczN: _0x341edc(0x15b) + "s",
-      ZHEXG: function(_0x2bde4c) {
-        return _0x2bde4c();
-      },
-      XIiDq: _0x341edc(0x2e6) + _0x341edc(0x1af),
-      RCXGc: _0x341edc(0x2d8),
-      gdFZP: _0x341edc(0x2e8) + _0x341edc(0x1a1) + "s",
-      GOSKS:
-        _0x341edc(0x12d) +
-        _0x341edc(0x2d4) +
-        _0x341edc(0x190) +
-        _0x341edc(0x336),
-    };
-  window[_0x341edc(0x243)](_0x2269da[_0x341edc(0x301)])[_0x341edc(0x219)]
-    ? (new Sortable(
-      document[_0x341edc(0x229) + _0x341edc(0x2bd)](
-        _0x2269da[_0x341edc(0x1dc)],
-      ),
-      {
-        group: _0x2269da[_0x341edc(0x26b)],
-        animation: 0x96,
-        ghostClass: _0x2269da[_0x341edc(0x1d0)],
-        onEnd: function(_0x2ccf45) {
-          const _0x2ae229 = _0x341edc;
-          if (
-            _0x2269da[_0x2ae229(0x2f3)](
-              _0x2ccf45["to"]["id"],
-              _0x2269da[_0x2ae229(0x2c5)],
-            )
-          ) {
-            const _0x2d77ac = _0x2ccf45[_0x2ae229(0x212)][
-              _0x2ae229(0x130) + _0x2ae229(0x231)
-            ](_0x2269da[_0x2ae229(0x283)]);
-            ((_0x2d77ac[_0x2ae229(0x141)] = _0x2269da[_0x2ae229(0x10d)]),
-              (_0x2d77ac[_0x2ae229(0x32b) + "t"] =
-                _0x2269da[_0x2ae229(0x13a)]),
-              (_0x2d77ac[_0x2ae229(0x1c2)] = () =>
-                removeFromInProgress(_0x2ccf45[_0x2ae229(0x212)])));
-          }
-          _0x2269da[_0x2ae229(0x2a3)](debouncedSaveTasks);
-        },
-      },
-    ),
-      new Sortable(
-        document[_0x341edc(0x229) + _0x341edc(0x2bd)](
-          _0x2269da[_0x341edc(0x2c5)],
-        ),
-        {
-          group: _0x2269da[_0x341edc(0x26b)],
-          animation: 0x96,
-          ghostClass: _0x2269da[_0x341edc(0x1d0)],
-          onEnd: function(_0x3e9903) {
-            const _0x50a663 = _0x341edc;
-            if (
-              _0x2269da[_0x50a663(0x10b)](
-                _0x3e9903["to"]["id"],
-                _0x2269da[_0x50a663(0x1dc)],
-              )
-            ) {
-              const _0x382327 = _0x3e9903[_0x50a663(0x212)][
-                _0x50a663(0x130) + _0x50a663(0x231)
-              ](_0x2269da[_0x50a663(0x283)]);
-              ((_0x382327[_0x50a663(0x141)] = _0x2269da[_0x50a663(0x1da)]),
-                (_0x382327[_0x50a663(0x32b) + "t"] =
-                  _0x2269da[_0x50a663(0x196)]),
-                (_0x382327[_0x50a663(0x1c2)] = () =>
-                  moveToInProgress(_0x3e9903[_0x50a663(0x212)])));
-            }
-            _0x2269da[_0x50a663(0x2c9)](debouncedSaveTasks);
-          },
-        },
-      ))
-    : console[_0x341edc(0x1e1)](_0x2269da[_0x341edc(0x28f)]);
+    });
+  } else {
+    console.log("Sortable disabled on small screens.");
+  }
 }
-function enterKeyListener(_0x226f05) {
-  const _0x18f8cf = _0x424f06,
-    _0x4bf413 = {
-      EPwMX: function(_0x125ae0, _0x5ec6fd) {
-        return _0x125ae0 === _0x5ec6fd;
-      },
-      rBDJE: _0x18f8cf(0x1a6),
-      JImcP: function(_0x248c98, _0x4c359e) {
-        return _0x248c98 === _0x4c359e;
-      },
-      wdSRW: _0x18f8cf(0x15c),
-      GZYaZ: function(_0x1b6680, _0x56cd47) {
-        return _0x1b6680 === _0x56cd47;
-      },
-      WYUAw: _0x18f8cf(0x1be),
-    };
-  if (_0x226f05[_0x18f8cf(0x101) + "g"]) return;
-  const _0x12324e = document[_0x18f8cf(0x14d) + _0x18f8cf(0x224)],
-    _0x59468f =
-      _0x12324e &&
-      (_0x4bf413[_0x18f8cf(0x200)](
-        _0x12324e[_0x18f8cf(0x306)],
-        _0x4bf413[_0x18f8cf(0x12c)],
-      ) ||
-        _0x4bf413[_0x18f8cf(0x2b9)](
-          _0x12324e[_0x18f8cf(0x306)],
-          _0x4bf413[_0x18f8cf(0x27d)],
-        ) ||
-        _0x12324e[_0x18f8cf(0x320) + _0x18f8cf(0x313)]);
-  _0x4bf413[_0x18f8cf(0x26d)](
-    _0x226f05[_0x18f8cf(0x2f9)],
-    _0x4bf413[_0x18f8cf(0x1b0)],
-  ) &&
-    !_0x59468f &&
-    (!noteEditor || !noteEditor[_0x18f8cf(0x1cb)]()) &&
-    addTaskButton[_0x18f8cf(0x300)]();
+
+// Trigger add task pop-up on Enter key in list view
+function enterKeyListener(event) {
+  if (event.isComposing) return;
+
+  const active = document.activeElement;
+  const isTyping =
+    active &&
+    (active.tagName === "INPUT" ||
+      active.tagName === "TEXTAREA" ||
+      active.isContentEditable);
+
+  if (
+    event.key === "Enter" &&
+    !isTyping &&
+    (!noteEditor || !noteEditor.hasFocus())
+  ) {
+    addTaskButton.click();
+  }
 }
-function tabKeyListener(_0x5ea6e1) {
-  const _0x39037a = _0x424f06,
-    _0x5e96ef = {
-      Kymrp: function(_0x36814f, _0x212ddf) {
-        return _0x36814f === _0x212ddf;
-      },
-      QEmwS: _0x39037a(0x157),
-      XGqzC: function(_0x568497) {
-        return _0x568497();
-      },
-    };
-  _0x5e96ef[_0x39037a(0x1f0)](
-    _0x5ea6e1[_0x39037a(0x2f9)],
-    _0x5e96ef[_0x39037a(0x2a5)],
-  ) &&
-    (!noteEditor ||
-      (!noteEditor[_0x39037a(0x1cb)]() &&
-        !_0x5e96ef[_0x39037a(0x149)](isVimModeActive))) &&
-    (_0x5ea6e1[_0x39037a(0x1bc) + _0x39037a(0x305)](),
-      _0x5e96ef[_0x39037a(0x149)](toggleNote));
+
+// Switch to Notebook on Tab key in list view
+function tabKeyListener(event) {
+  if (
+    event.key === "Tab" &&
+    (!noteEditor || (!noteEditor.hasFocus() && !isVimModeActive()))
+  ) {
+    event.preventDefault(); // Prevent default Tab behavior
+    toggleNote();
+  }
 }
+
+// Check if CodeMirror Vim mode is active
 function isVimModeActive() {
-  const _0x4c8e37 = _0x424f06,
-    _0xac555f = {
-      OdFZd: function(_0x133677, _0x2d5f16) {
-        return _0x133677 === _0x2d5f16;
-      },
-      zoYiv: _0x4c8e37(0x1cc),
-      VrhHW: _0x4c8e37(0x15d),
-    };
   return (
     noteEditor &&
-    _0xac555f[_0x4c8e37(0x199)](
-      noteEditor[_0x4c8e37(0x23c)](_0xac555f[_0x4c8e37(0x17c)]),
-      _0xac555f[_0x4c8e37(0x1f1)],
-    ) &&
-    noteEditor[_0x4c8e37(0x309)][_0x4c8e37(0x15d)] &&
-    noteEditor[_0x4c8e37(0x309)][_0x4c8e37(0x15d)][_0x4c8e37(0x249)]
+    noteEditor.getOption("keyMap") === "vim" &&
+    noteEditor.state.vim &&
+    noteEditor.state.vim.insertMode
   );
 }
+
+// Toggle between List and Notebook
 function toggleNote() {
-  const _0x556269 = _0x424f06,
-    _0x1ae672 = {
-      yNRpb: function(_0x3df4e2, _0x403991) {
-        return _0x3df4e2 !== _0x403991;
-      },
-      YchiO: _0x556269(0x29d),
-      KRVIi: _0x556269(0x2e4),
-      oSxnH: _0x556269(0x1d2),
-      RNkXZ: function(_0x2a9d8f) {
-        return _0x2a9d8f();
-      },
-      GadKY: _0x556269(0x322),
-      EsWLR: _0x556269(0x28d),
-      KPHas: _0x556269(0x135),
-      LpTfP: function(_0x44d931) {
-        return _0x44d931();
-      },
-    };
-  if (
-    _0x1ae672[_0x556269(0x14b)](
-      todoContainer[_0x556269(0x2e7)][_0x556269(0x2c6)],
-      _0x1ae672[_0x556269(0x1c4)],
-    )
-  ) {
-    const _0x286db3 = _0x1ae672[_0x556269(0x11f)][_0x556269(0x2fa)]("|");
-    let _0x5e0545 = -0x24dc + -0x3c3 * -0x5 + 0x1 * 0x120d;
-    while (!![]) {
-      switch (_0x286db3[_0x5e0545++]) {
-        case "0":
-          document[_0x556269(0x2a0) + _0x556269(0x2ae)](
-            _0x1ae672[_0x556269(0x32e)],
-            enterKeyListener,
-          );
-          continue;
-        case "1":
-          !noteContainer
-            ? _0x1ae672[_0x556269(0x295)](createNoteContainer)
-            : (noteContainer[_0x556269(0x2e7)][_0x556269(0x2c6)] =
-              _0x1ae672[_0x556269(0x2e2)]);
-          continue;
-        case "2":
-          todoContainer[_0x556269(0x2e7)][_0x556269(0x2c6)] =
-            _0x1ae672[_0x556269(0x1c4)];
-          continue;
-        case "3":
-          noteButton[_0x556269(0x32b) + "t"] = _0x1ae672[_0x556269(0x27f)];
-          continue;
-        case "4":
-          mainTitle[_0x556269(0x32b) + "t"] = _0x1ae672[_0x556269(0x206)];
-          continue;
-      }
-      break;
+  if (todoContainer.style.display !== "none") {
+    // Switch to Notebook
+    document.removeEventListener("keydown", enterKeyListener);
+    todoContainer.style.display = "none";
+    mainTitle.textContent = "Notebook";
+    if (!noteContainer) {
+      createNoteContainer();
+    } else {
+      noteContainer.style.display = "block";
     }
-  } else
-    (document[_0x556269(0x288) + _0x556269(0x247)](
-      _0x1ae672[_0x556269(0x32e)],
-      enterKeyListener,
-    ),
-      _0x1ae672[_0x556269(0x2ef)](showTodoView));
-  document[_0x556269(0x288) + _0x556269(0x247)](
-    _0x1ae672[_0x556269(0x32e)],
-    tabKeyListener,
-  );
+    noteButton.textContent = "To-Do List";
+  } else {
+    // Switch back to To-Do List
+    document.addEventListener("keydown", enterKeyListener);
+    showTodoView();
+  }
+  // Ensure tabKeyListener is always active
+  document.addEventListener("keydown", tabKeyListener);
 }
+
+// Dynamically create note container and initialize CodeMirror
 function createNoteContainer() {
-  const _0x5e7add = _0x424f06,
-    _0x4fe351 = {
-      FJOGZ: function(_0x55b397, _0x11177e) {
-        return _0x55b397 + _0x11177e;
+  // 建立外層容器
+  noteContainer = document.createElement("div");
+  noteContainer.id = "note-container";
+  noteContainer.className = "container-fluid p-0";
+  mainContent.appendChild(noteContainer);
+
+  // 新增標題 Header
+  const header = document.createElement("h6");
+  header.className = "text-center text-white mt-2";
+  header.innerHTML = `
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Vimlogo.svg" 
+           alt="Vim Logo" 
+           style="height: 1.2em; vertical-align: middle; margin-right: 0.4em;">
+      <span style="vertical-align: middle;">Notebook</span>
+    `;
+  noteContainer.appendChild(header);
+
+  // 判斷螢幕寬度是否顯示行號
+  const showLineNumbers = window.matchMedia("(min-width: 768px)").matches;
+
+  // 建立 CodeMirror 編輯器容器
+  const editorContainer = document.createElement("div");
+  editorContainer.id = "editor";
+  noteContainer.appendChild(editorContainer);
+
+  // 初始化 CodeMirror
+  noteEditor = CodeMirror(editorContainer, {
+    lineNumbers: showLineNumbers,
+    theme: "monokai",
+    mode: { name: "markdown", highlightFormatting: true },
+    keyMap: "vim",
+    styleActiveLine: true,
+    foldGutter: true,
+    gutters: showLineNumbers
+      ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+      : ["CodeMirror-foldgutter"],
+    lineNumberFormatter: function(line) {
+      if (!noteEditor) return line;
+      const cursorLine = noteEditor.getCursor().line + 1;
+      return line === cursorLine
+        ? String(line)
+        : String(Math.abs(cursorLine - line));
+    },
+    extraKeys: {
+      "Ctrl-Q": function(cm) {
+        cm.foldCode(cm.getCursor());
       },
-      gIObS: function(_0xa0bd67, _0x3ecd75) {
-        return _0xa0bd67 === _0x3ecd75;
+      "Ctrl-C": function(cm) {
+        const selectedText = cm.getSelection();
+        if (selectedText) {
+          navigator.clipboard
+            .writeText(selectedText)
+            .then(() => console.log("Text copied!"))
+            .catch((err) => console.error("Copy error:", err));
+        }
       },
-      UTcvY: function(_0x11a448, _0x1129fc) {
-        return _0x11a448(_0x1129fc);
-      },
-      cIffi: function(_0x5e8f29, _0x5685c3) {
-        return _0x5e8f29(_0x5685c3);
-      },
-      PEIiG: function(_0x5ad5e5, _0x133975) {
-        return _0x5ad5e5 - _0x133975;
-      },
-      EIAYx: function(_0x3739cb, _0x4eaa2e, _0x3f6228) {
-        return _0x3739cb(_0x4eaa2e, _0x3f6228);
-      },
-      tijud: function(_0x3622a0, _0x15061a) {
-        return _0x3622a0 < _0x15061a;
-      },
-      Ersyf: _0x5e7add(0x260),
-      PfJvm: _0x5e7add(0x2c0),
-      MttHU: _0x5e7add(0x20e) + _0x5e7add(0x104),
-      OthDs: _0x5e7add(0x2c2) + _0x5e7add(0x1e9),
-      yLLbA: _0x5e7add(0x2f7) + _0x5e7add(0x307) + _0x5e7add(0x2f5),
-      WAMWa: _0x5e7add(0x2e6) + _0x5e7add(0x1af),
-      lrHDM: _0x5e7add(0x317),
-      kVwBZ: function(_0x48ae61, _0x4e4fca, _0x316b10) {
-        return _0x48ae61(_0x4e4fca, _0x316b10);
-      },
-      qJwNy: _0x5e7add(0x1c9),
-      SGqbj: _0x5e7add(0x103),
-      RGAuZ: _0x5e7add(0x15d),
-      HpEmC: _0x5e7add(0x312) + _0x5e7add(0x232) + "rs",
-      oOJCM: _0x5e7add(0x312) + _0x5e7add(0x258) + "r",
-      pHVtM: _0x5e7add(0x30a) + _0x5e7add(0x18d),
-      owYTN: _0x5e7add(0x16f) + "t",
-      SDVmO: _0x5e7add(0x176) + _0x5e7add(0x224),
-      etNKD: _0x5e7add(0x270),
-      ubVaE: _0x5e7add(0x304),
-      OktwH: _0x5e7add(0x154),
-      SgXnV: _0x5e7add(0x217),
-      pgRef: _0x5e7add(0x136),
-      lVRKy: _0x5e7add(0x1ac),
-      gqmcI: _0x5e7add(0x1f6),
-    };
-  ((noteContainer = document[_0x5e7add(0x1b9) + _0x5e7add(0x224)](
-    _0x4fe351[_0x5e7add(0x266)],
-  )),
-    (noteContainer["id"] = _0x4fe351[_0x5e7add(0x337)]),
-    (noteContainer[_0x5e7add(0x141)] = _0x4fe351[_0x5e7add(0x172)]),
-    mainContent[_0x5e7add(0x2ed) + "d"](noteContainer));
-  const _0x1eaab1 = document[_0x5e7add(0x1b9) + _0x5e7add(0x224)]("h6");
-  ((_0x1eaab1[_0x5e7add(0x141)] = _0x4fe351[_0x5e7add(0x1b5)]),
-    (_0x1eaab1[_0x5e7add(0x105)] =
-      _0x5e7add(0x1e2) +
-      _0x5e7add(0x1db) +
-      _0x5e7add(0x2f2) +
-      _0x5e7add(0x2b8) +
-      _0x5e7add(0x25c) +
-      _0x5e7add(0x234) +
-      _0x5e7add(0x251) +
-      _0x5e7add(0x250) +
-      _0x5e7add(0x20d) +
-      _0x5e7add(0x1a8) +
-      _0x5e7add(0x14e) +
-      _0x5e7add(0x198) +
-      _0x5e7add(0x287) +
-      _0x5e7add(0x2ad) +
-      _0x5e7add(0x31c) +
-      _0x5e7add(0x16a) +
-      _0x5e7add(0x1d7) +
-      _0x5e7add(0x143) +
-      _0x5e7add(0x1c5) +
-      _0x5e7add(0x113) +
-      _0x5e7add(0x187) +
-      _0x5e7add(0x275) +
-      _0x5e7add(0x2db) +
-      _0x5e7add(0x2ab) +
-      _0x5e7add(0x13b) +
-      _0x5e7add(0x14f)),
-    noteContainer[_0x5e7add(0x2ed) + "d"](_0x1eaab1));
-  const _0x17a0c1 = window[_0x5e7add(0x243)](_0x4fe351[_0x5e7add(0x32f)])[
-    _0x5e7add(0x219)
-  ],
-    _0x55bf21 = document[_0x5e7add(0x1b9) + _0x5e7add(0x224)](
-      _0x4fe351[_0x5e7add(0x266)],
-    );
-  ((_0x55bf21["id"] = _0x4fe351[_0x5e7add(0x109)]),
-    noteContainer[_0x5e7add(0x2ed) + "d"](_0x55bf21),
-    (noteEditor = _0x4fe351[_0x5e7add(0x21d)](CodeMirror, _0x55bf21, {
-      lineNumbers: _0x17a0c1,
-      theme: _0x4fe351[_0x5e7add(0x192)],
-      mode: { name: _0x4fe351[_0x5e7add(0x24d)], highlightFormatting: !![] },
-      keyMap: _0x4fe351[_0x5e7add(0x223)],
-      styleActiveLine: !![],
-      foldGutter: !![],
-      gutters: _0x17a0c1
-        ? [_0x4fe351[_0x5e7add(0x125)], _0x4fe351[_0x5e7add(0x1f4)]]
-        : [_0x4fe351[_0x5e7add(0x1f4)]],
-      lineNumberFormatter: function(_0x4ddb6c) {
-        const _0x4a83e2 = _0x5e7add;
-        if (!noteEditor) return _0x4ddb6c;
-        const _0x3c1953 = _0x4fe351[_0x4a83e2(0x30f)](
-          noteEditor[_0x4a83e2(0x108)]()[_0x4a83e2(0x1d8)],
-          0x19 * 0xc3 + -0x1 * -0x2016 + 0x10 * -0x332,
-        );
-        return _0x4fe351[_0x4a83e2(0x314)](_0x4ddb6c, _0x3c1953)
-          ? _0x4fe351[_0x4a83e2(0x2d9)](String, _0x4ddb6c)
-          : _0x4fe351[_0x4a83e2(0x285)](
-            String,
-            Math[_0x4a83e2(0x2c4)](
-              _0x4fe351[_0x4a83e2(0x1cd)](_0x3c1953, _0x4ddb6c),
-            ),
-          );
-      },
-      extraKeys: {
-        "Ctrl-Q": function(_0x2cc7ae) {
-          const _0x13f59f = _0x5e7add;
-          _0x2cc7ae[_0x13f59f(0x23b)](_0x2cc7ae[_0x13f59f(0x108)]());
-        },
-        "Ctrl-C": function(_0x3160f2) {
-          const _0x340cdd = _0x5e7add,
-            _0x5b53ab = _0x3160f2[_0x340cdd(0x11a) + "on"]();
-          _0x5b53ab &&
-            navigator[_0x340cdd(0x11d)]
-            [_0x340cdd(0x1dd)](_0x5b53ab)
-            [_0x340cdd(0x269)](() =>
-              console[_0x340cdd(0x1e1)](_0x340cdd(0x23d) + "d!"),
-            )
-            [_0x340cdd(0x121)]((_0x19cf36) =>
-              console[_0x340cdd(0x222)](_0x340cdd(0x17a) + ":", _0x19cf36),
-            );
-        },
-      },
-    })),
-    noteEditor["on"](_0x4fe351[_0x5e7add(0x107)], () => {
-      const _0x49109c = _0x5e7add,
-        _0x489472 = noteEditor[_0x49109c(0x108)]();
-      (noteEditor[_0x49109c(0x2bb) + _0x49109c(0x1b2)](
-        { line: _0x489472[_0x49109c(0x1d8)], ch: _0x489472["ch"] },
-        -0x16ee * 0x1 + -0x18a1 + 0x983 * 0x5,
-      ),
-        _0x4fe351[_0x49109c(0x319)](
-          setTimeout,
-          () => {
-            const _0x4b20ca = _0x49109c;
-            noteEditor[_0x4b20ca(0x2e0)]();
-          },
-          0x11cf + -0x51 + -0x1174,
-        ));
-    }),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x293) + "on"](
-      _0x4fe351[_0x5e7add(0x1e3)],
-      (_0x3d17dc) => _0x3d17dc[_0x5e7add(0x23b)](_0x3d17dc[_0x5e7add(0x108)]()),
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x293) + "on"](
-      _0x4fe351[_0x5e7add(0x152)],
-      (_0x535cdc) =>
-        _0x535cdc[_0x5e7add(0x23b)](
-          _0x535cdc[_0x5e7add(0x108)](),
-          null,
-          _0x5e7add(0x260),
-        ),
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x293) + "on"](
-      _0x4fe351[_0x5e7add(0x28e)],
-      (_0x3fcedf) => {
-        const _0x15a88f = _0x5e7add,
-          _0x4cdff6 = {
-            DBEgx: function(_0x54b6e2, _0x3c122b) {
-              const _0x37e831 = _0x7801;
-              return _0x4fe351[_0x37e831(0x1ea)](_0x54b6e2, _0x3c122b);
-            },
-          };
-        _0x3fcedf[_0x15a88f(0x144)](() => {
-          const _0x30461e = _0x15a88f;
-          for (
-            let _0x52f331 = 0x227 + 0x7 * 0x3f3 + -0x1dcc;
-            _0x4cdff6[_0x30461e(0x2a1)](
-              _0x52f331,
-              _0x3fcedf[_0x30461e(0x13f)](),
-            );
-            _0x52f331++
-          )
-            _0x3fcedf[_0x30461e(0x23b)](
-              CodeMirror[_0x30461e(0x29e)](
-                _0x52f331,
-                0x2 * -0x173 + 0x6a6 + -0x3 * 0x140,
-              ),
-            );
-        });
-      },
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x293) + "on"](
-      _0x4fe351[_0x5e7add(0x286)],
-      (_0x160550) => {
-        const _0x53f7c7 = _0x5e7add,
-          _0x5ef4ab = {
-            jiurV: function(_0x509433, _0x213570) {
-              const _0x507342 = _0x7801;
-              return _0x4fe351[_0x507342(0x1ea)](_0x509433, _0x213570);
-            },
-            XlZAc: _0x4fe351[_0x53f7c7(0x173)],
-          };
-        _0x160550[_0x53f7c7(0x144)](() => {
-          const _0x2d40a2 = _0x53f7c7;
-          for (
-            let _0x18f94f = -0x1 * 0x691 + 0x4 * 0x7f4 + -0x193f;
-            _0x5ef4ab[_0x2d40a2(0x280)](
-              _0x18f94f,
-              _0x160550[_0x2d40a2(0x13f)](),
-            );
-            _0x18f94f++
-          )
-            _0x160550[_0x2d40a2(0x23b)](
-              CodeMirror[_0x2d40a2(0x29e)](
-                _0x18f94f,
-                -0x2 * -0x12d3 + 0xe5c + -0x3402,
-              ),
-              null,
-              _0x5ef4ab[_0x2d40a2(0x19d)],
-            );
-        });
-      },
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x24f)](
-      "zc",
-      _0x4fe351[_0x5e7add(0x1f2)],
-      _0x4fe351[_0x5e7add(0x1e3)],
-      {},
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x24f)](
-      "zo",
-      _0x4fe351[_0x5e7add(0x1f2)],
-      _0x4fe351[_0x5e7add(0x152)],
-      {},
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x24f)](
-      "zM",
-      _0x4fe351[_0x5e7add(0x1f2)],
-      _0x4fe351[_0x5e7add(0x28e)],
-      {},
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x24f)](
-      "zR",
-      _0x4fe351[_0x5e7add(0x1f2)],
-      _0x4fe351[_0x5e7add(0x286)],
-      {},
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x186)](
-      "jk",
-      _0x4fe351[_0x5e7add(0x221)],
-      _0x4fe351[_0x5e7add(0x31b)],
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x186)](
-      "t",
-      _0x4fe351[_0x5e7add(0x1f5)],
-      _0x4fe351[_0x5e7add(0x218)],
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x186)](
-      "L",
-      "$",
-      _0x4fe351[_0x5e7add(0x218)],
-    ),
-    CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x186)](
-      "H",
-      "0",
-      _0x4fe351[_0x5e7add(0x218)],
-    ),
-    _0x4fe351[_0x5e7add(0x21d)](
-      setTimeout,
-      () => CodeMirror[_0x5e7add(0x237)][_0x5e7add(0x2e1)](noteEditor, "i"),
-      -0x2fa * 0x1 + 0x16b + 0x1 * 0x383,
-    ));
+    },
+  });
+
+  noteEditor.on("cursorActivity", () => {
+    const cursor = noteEditor.getCursor();
+    noteEditor.scrollIntoView({ line: cursor.line, ch: cursor.ch }, 0);
+    setTimeout(() => {
+      noteEditor.refresh();
+    }, 10);
+  });
+
+  // Vim 特定快捷鍵
+  CodeMirror.Vim.defineAction("foldCurrent", (cm) =>
+    cm.foldCode(cm.getCursor()),
+  );
+  CodeMirror.Vim.defineAction("unfoldCurrent", (cm) =>
+    cm.foldCode(cm.getCursor(), null, "unfold"),
+  );
+  CodeMirror.Vim.defineAction("foldAll", (cm) => {
+    cm.operation(() => {
+      for (let i = 0; i < cm.lineCount(); i++)
+        cm.foldCode(CodeMirror.Pos(i, 0));
+    });
+  });
+  CodeMirror.Vim.defineAction("unfoldAll", (cm) => {
+    cm.operation(() => {
+      for (let i = 0; i < cm.lineCount(); i++)
+        cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
+    });
+  });
+
+  CodeMirror.Vim.mapCommand("zc", "action", "foldCurrent", {});
+  CodeMirror.Vim.mapCommand("zo", "action", "unfoldCurrent", {});
+  CodeMirror.Vim.mapCommand("zM", "action", "foldAll", {});
+  CodeMirror.Vim.mapCommand("zR", "action", "unfoldAll", {});
+  CodeMirror.Vim.map("jk", "<Esc>", "insert");
+  CodeMirror.Vim.map("t", "ggvG$", "normal");
+  CodeMirror.Vim.map("L", "$", "normal");
+  CodeMirror.Vim.map("H", "0", "normal");
+
+  setTimeout(() => CodeMirror.Vim.handleKey(noteEditor, "i"), 500);
 }
-function updateNoteContent(_0x1107d8) {
-  const _0x280e21 = _0x424f06,
-    _0x295f41 = {
-      yQIiG: function(_0x5aca9c) {
-        return _0x5aca9c();
-      },
-      dkoLa: function(_0x4b71f4, _0x5bfba6) {
-        return _0x4b71f4 || _0x5bfba6;
-      },
-      rXDsj: _0x280e21(0x29d),
-    };
-  (!noteContainer && _0x295f41[_0x280e21(0x2d5)](createNoteContainer),
-    noteEditor &&
-    noteEditor[_0x280e21(0x12f)](_0x295f41[_0x280e21(0x1a0)](_0x1107d8, "")),
-    (noteContainer[_0x280e21(0x2e7)][_0x280e21(0x2c6)] =
-      _0x295f41[_0x280e21(0x2f4)]));
+
+// Update Notebook content
+function updateNoteContent(noteText) {
+  if (!noteContainer) {
+    createNoteContainer();
+  }
+  if (noteEditor) {
+    noteEditor.setValue(noteText || "");
+  }
+  noteContainer.style.display = "none";
 }
+
+// Clear all tasks
 function clearTasks() {
-  const _0x5b45c8 = _0x424f06,
-    _0x59a335 = {
-      XilyM: _0x5b45c8(0x22f),
-      eqhdi: _0x5b45c8(0x21f) + _0x5b45c8(0x1f9),
-      NzLCG: function(_0x5b037e) {
-        return _0x5b037e();
-      },
-    };
-  ((document[_0x5b45c8(0x229) + _0x5b45c8(0x2bd)](_0x59a335[_0x5b45c8(0x2e3)])[
-    _0x5b45c8(0x105)
-  ] = ""),
-    (document[_0x5b45c8(0x229) + _0x5b45c8(0x2bd)](_0x59a335[_0x5b45c8(0x2d0)])[
-      _0x5b45c8(0x105)
-    ] = ""),
-    noteEditor && noteEditor[_0x5b45c8(0x12f)](""),
-    _0x59a335[_0x5b45c8(0x2ac)](debouncedSaveTasks));
+  document.getElementById("todo-list").innerHTML = "";
+  document.getElementById("in-progress-list").innerHTML = "";
+  if (noteEditor) {
+    noteEditor.setValue("");
+  }
+  debouncedSaveTasks(); // Debounced save
 }
-function showSuccessMessage(_0xa0d94b, _0x4f98df) {
-  const _0x173025 = _0x424f06,
-    _0x1fc022 = { oPrxY: _0x173025(0x213), GJliu: _0x173025(0x242) };
-  Swal[_0x173025(0x2d1)]({
-    icon: _0x1fc022[_0x173025(0x26a)],
-    title: _0xa0d94b,
-    text: _0x4f98df,
+
+// Show success message
+function showSuccessMessage(title, text) {
+  Swal.fire({
+    icon: "success",
+    title: title,
+    text: text,
     confirmButtonText: "OK",
-    confirmButtonColor: _0x1fc022[_0x173025(0x326)],
+    confirmButtonColor: "#ff9800",
   });
 }
-function showErrorMessage(_0x6b1435, _0x2d5d04) {
-  const _0x5d03d2 = _0x424f06,
-    _0x2f7815 = { AKgFt: _0x5d03d2(0x222), lhEgF: _0x5d03d2(0x242) };
-  Swal[_0x5d03d2(0x2d1)]({
-    icon: _0x2f7815[_0x5d03d2(0x29c)],
-    title: _0x6b1435,
-    text: _0x2d5d04,
+
+// Show error message
+function showErrorMessage(title, text) {
+  Swal.fire({
+    icon: "error",
+    title: title,
+    text: text,
     confirmButtonText: "OK",
-    confirmButtonColor: _0x2f7815[_0x5d03d2(0x16e)],
+    confirmButtonColor: "#ff9800",
   });
 }

@@ -97,7 +97,7 @@ let noteEditor = null;
 
 const debouncedSaveTasks = debounce(saveTasks, 500);
 
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", async function() {
   if (sessionStorage.getItem("logged_in") === "true") {
     document.body.classList.remove("hidden-content");
     initializePage();
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.addEventListener("keydown", enterKeyListener);
   document.addEventListener("keydown", tabKeyListener);
 
-  document.addEventListener("keydown", function (event) {
+  document.addEventListener("keydown", function(event) {
     if (event.ctrlKey && event.key === "s") {
       event.preventDefault();
       saveTasks();
@@ -170,8 +170,6 @@ function showTodoView() {
 function fetchTasks() {
   fetchTasksFromAPI()
     .then((data) => {
-      // console.log("Processed data:", JSON.stringify(data, null, 2)); // Debug
-      // Validate data structure
       if (
         data &&
         typeof data === "object" &&
@@ -188,7 +186,6 @@ function fetchTasks() {
           "Error",
           "Received invalid data structure from server",
         );
-        // Use fallback data to prevent app crash
         renderTasks([], "todo-list");
         renderTasks([], "in-progress-list");
         updateNoteContent("");
@@ -200,7 +197,6 @@ function fetchTasks() {
         "Error",
         "Unable to fetch tasks and notes: " + error.message,
       );
-      // Use fallback data
       renderTasks([], "todo-list");
       renderTasks([], "in-progress-list");
       updateNoteContent("");
@@ -216,7 +212,6 @@ function renderTasks(tasks, listId) {
   }
   listElement.innerHTML = "";
   tasks.forEach((taskData) => {
-    // Validate task data structure
     if (
       taskData.goal !== undefined &&
       taskData.purpose !== undefined &&
@@ -270,24 +265,42 @@ function moveToInProgress(task) {
   button.className = "btn btn-sm btn-outline-danger";
   button.textContent = "Complete";
   button.onclick = () => removeFromInProgress(task);
-  debouncedSaveTasks(); // Debounced save
+  debouncedSaveTasks();
 }
 
 // Remove from In Progress
 function removeFromInProgress(task) {
   task.remove();
-  debouncedSaveTasks(); // Debounced save
+  debouncedSaveTasks();
 }
 
 // Trigger save
 function saveTasks() {
-  const todoTasks = Array.from(
-    document.getElementById("todo-list").children,
-  ).map((li) => JSON.parse(li.dataset.taskData));
-  const inProgressTasks = Array.from(
-    document.getElementById("in-progress-list").children,
-  ).map((li) => JSON.parse(li.dataset.taskData));
-  const noteText = noteEditor ? noteEditor.getValue() : "";
+  const todoList = document.getElementById("todo-list");
+  const inProgressList = document.getElementById("in-progress-list");
+
+  const todoTasks = Array.from(todoList.children).map((li) =>
+    JSON.parse(li.dataset.taskData),
+  );
+  const inProgressTasks = Array.from(inProgressList.children).map((li) =>
+    JSON.parse(li.dataset.taskData),
+  );
+  const noteText = noteEditor ? noteEditor.getValue().trim() : "";
+
+  // --- SIMPLE AUTHENTICATION / VALIDATION ---
+  // If all fields are empty, refuse access (do not send API request)
+  if (
+    todoTasks.length === 0 &&
+    inProgressTasks.length === 0 &&
+    noteText === ""
+  ) {
+    showErrorMessage(
+      "Access Denied",
+      "The current dataset is empty. The system has blocked the save request to protect existing data.",
+    );
+    return;
+  }
+  // ------------------------------------------
 
   const data = {
     note_data: noteText,
@@ -295,26 +308,24 @@ function saveTasks() {
     in_progress_data: inProgressTasks,
   };
 
-  const saveButton = document.getElementById("save-tasks");
-  const originalHTML = saveButton.innerHTML;
-  saveButton.innerHTML = '<span class="spinner"></span>';
+  const saveBtn = document.getElementById("save-tasks");
+  const originalHTML = saveBtn.innerHTML;
+  saveBtn.innerHTML = '<span class="spinner"></span>';
 
   saveTasksToAPI(data)
     .then((res) => {
       if (!res.success) {
         showErrorMessage(
           "Save Failed",
-          "Unable to save tasks and notes: " + (res.message || "Unknown error"),
+          "Unable to save: " + (res.message || "Unknown error"),
         );
-      } else {
-        // showSuccessMessage('Saved', 'Tasks and notes saved successfully');
       }
     })
     .catch((e) => {
       showErrorMessage("Error", "Unknown error occurred: " + e.message);
     })
     .finally(() => {
-      saveButton.innerHTML = originalHTML;
+      saveBtn.innerHTML = originalHTML;
     });
 }
 
@@ -352,7 +363,7 @@ function addTask() {
       const todoList = document.getElementById("todo-list");
       const newTask = createTaskElement(taskData, false);
       todoList.prepend(newTask);
-      debouncedSaveTasks(); // Debounced save
+      debouncedSaveTasks();
     }
   });
 }
@@ -394,7 +405,7 @@ function editTask(task) {
       };
       task.dataset.taskData = JSON.stringify(newTaskData);
       task.childNodes[0].textContent = `${newTaskData.goal} ${newTaskData.purpose} [ ${newTaskData.todo} ] ${newTaskData.timing}`;
-      debouncedSaveTasks(); // Debounced save
+      debouncedSaveTasks();
     }
   });
 }
@@ -447,7 +458,7 @@ function initializeSortable() {
           button.textContent = "Complete";
           button.onclick = () => removeFromInProgress(evt.item);
         }
-        debouncedSaveTasks(); // Debounced save
+        debouncedSaveTasks();
       },
     });
 
@@ -462,25 +473,21 @@ function initializeSortable() {
           button.textContent = "In Progress";
           button.onclick = () => moveToInProgress(evt.item);
         }
-        debouncedSaveTasks(); // Debounced save
+        debouncedSaveTasks();
       },
     });
-  } else {
-    console.log("Sortable disabled on small screens.");
   }
 }
 
-// Trigger add task pop-up on Enter key in list view
+// Trigger add task pop-up on Enter key
 function enterKeyListener(event) {
   if (event.isComposing) return;
-
   const active = document.activeElement;
   const isTyping =
     active &&
     (active.tagName === "INPUT" ||
       active.tagName === "TEXTAREA" ||
       active.isContentEditable);
-
   if (
     event.key === "Enter" &&
     !isTyping &&
@@ -490,18 +497,17 @@ function enterKeyListener(event) {
   }
 }
 
-// Switch to Notebook on Tab key in list view
+// Switch to Notebook on Tab key
 function tabKeyListener(event) {
   if (
     event.key === "Tab" &&
     (!noteEditor || (!noteEditor.hasFocus() && !isVimModeActive()))
   ) {
-    event.preventDefault(); // Prevent default Tab behavior
+    event.preventDefault();
     toggleNote();
   }
 }
 
-// Check if CodeMirror Vim mode is active
 function isVimModeActive() {
   return (
     noteEditor &&
@@ -514,7 +520,6 @@ function isVimModeActive() {
 // Toggle between List and Notebook
 function toggleNote() {
   if (todoContainer.style.display !== "none") {
-    // Switch to Notebook
     document.removeEventListener("keydown", enterKeyListener);
     todoContainer.style.display = "none";
     mainTitle.textContent = "Notebook";
@@ -525,42 +530,29 @@ function toggleNote() {
     }
     noteButton.textContent = "To-Do List";
   } else {
-    // Switch back to To-Do List
     document.addEventListener("keydown", enterKeyListener);
     showTodoView();
   }
-  // Ensure tabKeyListener is always active
   document.addEventListener("keydown", tabKeyListener);
 }
 
-// Dynamically create note container and initialize CodeMirror
+// Create note container
 function createNoteContainer() {
-  // 建立外層容器
   noteContainer = document.createElement("div");
   noteContainer.id = "note-container";
   noteContainer.className = "container-fluid p-0";
   mainContent.appendChild(noteContainer);
 
-  // 新增標題 Header
   const header = document.createElement("h6");
   header.className = "text-center text-white mt-2";
-  header.innerHTML = `
-      <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Vimlogo.svg" 
-           alt="Vim Logo" 
-           style="height: 1.2em; vertical-align: middle; margin-right: 0.4em;">
-      <span style="vertical-align: middle;">Notebook</span>
-    `;
+  header.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Vimlogo.svg" alt="Vim Logo" style="height: 1.2em; vertical-align: middle; margin-right: 0.4em;"><span style="vertical-align: middle;">Notebook</span>`;
   noteContainer.appendChild(header);
 
-  // 判斷螢幕寬度是否顯示行號
   const showLineNumbers = window.matchMedia("(min-width: 768px)").matches;
-
-  // 建立 CodeMirror 編輯器容器
   const editorContainer = document.createElement("div");
   editorContainer.id = "editor";
   noteContainer.appendChild(editorContainer);
 
-  // 初始化 CodeMirror
   noteEditor = CodeMirror(editorContainer, {
     lineNumbers: showLineNumbers,
     theme: "monokai",
@@ -571,7 +563,7 @@ function createNoteContainer() {
     gutters: showLineNumbers
       ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
       : ["CodeMirror-foldgutter"],
-    lineNumberFormatter: function(line) {
+    lineNumberFormatter: (line) => {
       if (!noteEditor) return line;
       const cursorLine = noteEditor.getCursor().line + 1;
       return line === cursorLine
@@ -579,17 +571,10 @@ function createNoteContainer() {
         : String(Math.abs(cursorLine - line));
     },
     extraKeys: {
-      "Ctrl-Q": function(cm) {
-        cm.foldCode(cm.getCursor());
-      },
-      "Ctrl-C": function(cm) {
-        const selectedText = cm.getSelection();
-        if (selectedText) {
-          navigator.clipboard
-            .writeText(selectedText)
-            .then(() => console.log("Text copied!"))
-            .catch((err) => console.error("Copy error:", err));
-        }
+      "Ctrl-Q": (cm) => cm.foldCode(cm.getCursor()),
+      "Ctrl-C": (cm) => {
+        const selected = cm.getSelection();
+        if (selected) navigator.clipboard.writeText(selected);
       },
     },
   });
@@ -597,76 +582,31 @@ function createNoteContainer() {
   noteEditor.on("cursorActivity", () => {
     const cursor = noteEditor.getCursor();
     noteEditor.scrollIntoView({ line: cursor.line, ch: cursor.ch }, 0);
-    setTimeout(() => {
-      noteEditor.refresh();
-    }, 10);
+    setTimeout(() => noteEditor.refresh(), 10);
   });
 
-  // Vim 特定快捷鍵
+  // Vim Config
   CodeMirror.Vim.defineAction("foldCurrent", (cm) =>
     cm.foldCode(cm.getCursor()),
   );
   CodeMirror.Vim.defineAction("unfoldCurrent", (cm) =>
     cm.foldCode(cm.getCursor(), null, "unfold"),
   );
-  CodeMirror.Vim.defineAction("foldAll", (cm) => {
-    cm.operation(() => {
-      for (let i = 0; i < cm.lineCount(); i++)
-        cm.foldCode(CodeMirror.Pos(i, 0));
-    });
-  });
-  CodeMirror.Vim.defineAction("unfoldAll", (cm) => {
-    cm.operation(() => {
-      for (let i = 0; i < cm.lineCount(); i++)
-        cm.foldCode(CodeMirror.Pos(i, 0), null, "unfold");
-    });
-  });
-
   CodeMirror.Vim.mapCommand("zc", "action", "foldCurrent", {});
   CodeMirror.Vim.mapCommand("zo", "action", "unfoldCurrent", {});
-  CodeMirror.Vim.mapCommand("zM", "action", "foldAll", {});
-  CodeMirror.Vim.mapCommand("zR", "action", "unfoldAll", {});
   CodeMirror.Vim.map("jk", "<Esc>", "insert");
-  CodeMirror.Vim.map("t", "ggvG$", "normal");
   CodeMirror.Vim.map("L", "$", "normal");
   CodeMirror.Vim.map("H", "0", "normal");
 
   setTimeout(() => CodeMirror.Vim.handleKey(noteEditor, "i"), 500);
 }
 
-// Update Notebook content
 function updateNoteContent(noteText) {
-  if (!noteContainer) {
-    createNoteContainer();
-  }
-  if (noteEditor) {
-    noteEditor.setValue(noteText || "");
-  }
+  if (!noteContainer) createNoteContainer();
+  if (noteEditor) noteEditor.setValue(noteText || "");
   noteContainer.style.display = "none";
 }
 
-// Clear all tasks
-function clearTasks() {
-  document.getElementById("todo-list").innerHTML = "";
-  document.getElementById("in-progress-list").innerHTML = "";
-  if (noteEditor) {
-    noteEditor.setValue("");
-  }
-  debouncedSaveTasks(); // Debounced save
-}
-
-// Show success message
-function showSuccessMessage(title, text) {
-  Swal.fire({
-    icon: "success",
-    title: title,
-    text: text,
-    confirmButtonText: "OK",
-    confirmButtonColor: "#ff9800",
-  });
-}
-
-// Show error message
 function showErrorMessage(title, text) {
   Swal.fire({
     icon: "error",
